@@ -7,7 +7,10 @@ initialize_chain <- function(seed, methodPi){
   load("data/ind-est-heterosis.RData")
   priors <- formatPriors(K=2^12, estimates = ind_est, A=3, B=3/sqrt(cuda_dat$G))
   
-  C <- list(diff_expr = matrix(c(0, 1, 0),1,3, byrow=T)) 
+  C <- list(extreme_heterosis = matrix(c(0, 1, 1, 1, 0,
+			 	 0, 1, 1,-1, 0,
+				 0,-1, 1, 1, 0,
+				 0,-1, 1,-1, 0),4, 5, byrow=T)) 
   
   contr <- formatControl(n_iter = 2,
                          thin = 1,
