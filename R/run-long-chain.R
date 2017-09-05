@@ -1,6 +1,6 @@
 #long run, 1000000 iterations
 
-source("R/workflow_fun.R")
+source("workflow_fun.R")
 
 seed <- 138762371
 setup <- initialize_chain(seed, "stickBreaking")
