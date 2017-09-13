@@ -11,9 +11,12 @@ In \citet{voom}, the authors proposed using a nonparametric estimate of the mean
 \citet{liu}
 
 \section{Gene expression data}
-\subsection{Data preprocessing}
-\paragraph{Voom}
-We'd like to know whether it makes a difference whether we use voom precision weights. It might be good to compare results with and without the weights for the non-parametric method vs a standard method, like vanilla limma.
+\subsection{Normalization and weighting}
+\paragraph{voom}
+Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{V}(C)=\op{E{C}$), if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads overdispersion of the counts. Often, the negative binomial distribution is used because its variance is quadratic with the mean ($\op{V}(C)=\op{E}+\phi\op{E}^2(C)$). Because gene expression is usually measured on the log scale, through an application of the delta method, we might re-express this in terms of the log-count ($\op{V}(\log C) \approx \frac{1}{\op{E}(C)} + \phi$). While this assumption may be adequate for genes with similar expression levels, empirical studies suggest that the overdispersion parameter, $\phi$, tends to be larger for genes with lower expression than those with higher expression.
+
+\cite{voom} proposed \textit{voom}, a way to incorporate between-gene information about the mean-variance relationship in an RNA-seq data set through precision weighting of individual log-counts, making the data amenable to analysis via a linear model. It works by first calculating, for each gene, a sample standard deviation and mean log-count, and then fitting a LOWESS curve, treating the square root standard deviations as a response and the mean log-count as the predictor. Fitted values for all counts are converted into precision weights.
+
 
 \section{Bayesian nonparametric model}
 
