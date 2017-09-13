@@ -1,18 +1,51 @@
 
 \section{Introduction}
-Because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters. Choosing to model this underlying distribution with a parametric family that is too restrictive, i.e. leads to too crude an approximation of the underlying process, means that very little borrowing of information across genes.
+Profiling gene expression is common problem in modern biology. It is also a classic $n \ll p$ example, inspiring statistical advances in multiple testing. Because the presence of a meaningful biological effect fits awkwardly into the NHST framework, arguably most questions of interest are better addressed through estimation \citet{deseq2014}. This is the approach that we pursue here.
 
-We also want to estimate functionals of the parameters by integrating over the entire posterior.
+Current estimation methodologies can be understood as improving upon a ``straight" estimator by modeling gene-specific model parameters to borrow information across genes. \textit{Insert analogy to Stein's estimator}.
 
-\section{Bayesian nonparametric model for gene expression}
+Because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters. Herein lies dragons... In fact, given the large number of genes, G, the parameters of this distribution, if it should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. The impact of the hierarchical modeling approach is to ``regularize" inference for gene-specific parameters by shrinking the posterior distribution of these parameters away from the tails of the hierarchical distribution. Because of its essential role, the shape of the tail, vis a vis the choice of the hierarchical model, should be considered.
 
-Model goes here
+In \citet{voom}, the authors proposed using a nonparametric estimate of the mean variance relationship using the straight estimates as data to produce precision estimates for each datum, thereby borrowing information about the measure of uncertainty within a gene. In Niemi et al, 2016, the authors used an empirical Bayes approach that considered the marginal empirical distributions of the straight estimators to inform the selection of prior distributions of the regression coefficients.
 
-\section{Computation}
+\citet{liu}
 
-\section{Voom}
+\section{Gene expression data}
+\subsection{Data preprocessing}
+\paragraph{Voom}
 We'd like to know whether it makes a difference whether we use voom precision weights. It might be good to compare results with and without the weights for the non-parametric method vs a standard method, like vanilla limma.
 
-\section{Analysis of heterosis data}
+\section{Bayesian nonparametric model}
+
+\section{Simulation study 1}
+
+\paragraph{Construction of simulated data:}
+\begin{enumerate}
+\item Select random draw $\mathcal{P}^{(s)}$ from posterior distribution of $\mathcal{P}$
+
+\item Sample $(\beta_g,\sigma^2_g)$ from $\mathcal{P}^{(s)}$
+
+\item Sample $y_{g,rep} \sim N(X\beta_g,\sigma^2_g)$
+\end{enumerate}
+Produce 6-10 such data sets.\\
+
+\paragraph{Analysis}
+
+Run Gibbs sampler for each data set:
+\begin{enumerate}
+\item look at coverage of posterior credible intervals for gene-specific parameters
+
+\item look at calibration of posterior probabilities for proposition(s) of interest
+
+\item compare MSE to unpooled/unbiased estimateors
+\end{enumerate}
+\section{Simulation study 2}
+Generally: Generate count data, truth estimated from model, and compare voom pipelines.
+
+Outputs: ROC curves, difference histograms
+
+\section{Analysis of Paschold data}
+
+
 
 
