@@ -3,8 +3,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --partition=gpu
-#SBATCH --error=msg/long%a.err
-#SBATCH --output=msg/long%a.out
+#SBATCH --error=msg/long.err
+#SBATCH --output=msg/long.out
 #SBATCH --mail-user=emittman@iastate.edu
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
