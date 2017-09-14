@@ -1,9 +1,9 @@
-#long run, 1000000 iterations
-
+#long run, 300000 iterations
+library(cudarpackage)
 source("workflow_fun.R")
 
 seed <- 138762371
-setup <- initialize_chain(seed, "stickBreaking")
+setup <- initialize_chain(seed, "stickBreaking", 10000, 10000, 300000)
 
 saveRDS(setup, file="init-for-long-chain.rds")
 

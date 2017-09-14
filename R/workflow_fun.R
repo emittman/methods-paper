@@ -1,11 +1,11 @@
-initialize_chain <- function(seed, methodPi){
+initialize_chain <- function(seed, methodPi, n.init, n.warmup, n.sample){
 
   cat(methodPi)  
     
   set.seed(seed)
   load("data/cuda-dat-heterosis.Rdata")
   load("data/ind-est-heterosis.RData")
-  priors <- formatPriors(K=2^12, estimates = ind_est, A=3, B=3/sqrt(cuda_dat$G))
+  priors <- formatPriors(K=2^12*1.5625, estimates = ind_est, A=3, B=3/sqrt(cuda_dat$G))
   
   C <- list(extreme_heterosis = matrix(c(0, 1, 1, 1, 0,
 			 	 0, 1, 1,-1, 0,
@@ -14,7 +14,7 @@ initialize_chain <- function(seed, methodPi){
   
   contr <- formatControl(n_iter = 2,
                          thin = 1,
-                         warmup = 10000,
+                         warmup = n.init,
                          methodPi = "symmDirichlet",
                          idx_save = 1,
                          n_save_P = 1,
@@ -33,10 +33,10 @@ initialize_chain <- function(seed, methodPi){
                                  alpha = alpha,
                                  C = C))
   
-  contr$n_iter <- as.integer(1000000)
-  contr$thin <- as.integer(5)
-  contr$warmup <- as.integer(10000)
-  contr$idx_save <- 1
+  contr$n_iter <- as.integer(n.sample)
+  contr$thin <- as.integer(100)
+  contr$warmup <- as.integer(n.warmup)
+  contr$idx_save <- as.integer(0:(cuda_dat$G-1))
   contr$n_save_P <- as.integer(100)
   contr$methodPi <- methodPi
   

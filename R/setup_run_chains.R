@@ -9,14 +9,14 @@ dir.create("arrayOutput")
 # [1] 882966155 304646912 197903977 404958566
 
 my_plan <- plan(
-  inits1 = initialize_chain(882966155, "stickBreaking"),
-  inits2 = initialize_chain(304646912, "stickBreaking"),
-  inits3 = initialize_chain(197903977, "stickBreaking"),
-  inits4 = initialize_chain(404958566, "stickBreaking"),
-  chain1_sb = sample_bnp_model(inits1),
-  chain2_sb = sample_bnp_model(inits2),
-  chain3_sb = sample_bnp_model(inits3),
-  chain4_sb = sample_bnp_model(inits4),
+  inits1_914 = initialize_chain(882966155, "stickBreaking", 20000, 10000, 50000),
+  inits2_914 = initialize_chain(304646912, "stickBreaking", 20000, 10000, 50000),
+  inits3_914 = initialize_chain(197903977, "stickBreaking", 20000, 10000, 50000),
+  inits4_914 = initialize_chain(404958566, "stickBreaking", 20000, 10000, 50000),
+  chain1_sb_914 = sample_bnp_model(inits1),
+  chain2_sb_914 = sample_bnp_model(inits2),
+  chain3_sb_914 = sample_bnp_model(inits3),
+  chain4_sb_914 = sample_bnp_model(inits4),
   strings_in_dots = "literals"
 )
 

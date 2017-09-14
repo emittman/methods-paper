@@ -1,5 +1,5 @@
 #! /bin/bash
-#SBATCH --time=4-0:00:00
+#SBATCH --time=8-0:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --partition=gpu
@@ -13,4 +13,4 @@
 module load R
 module load cuda
 
-R --vanilla --no-save run-long-chain.R #run an R script using R
+R --vanilla --no-save < run-long-chain.R #run an R script using R
