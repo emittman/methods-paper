@@ -44,7 +44,7 @@ diffHexHist <- function(df1, df2, bins, zmax=NA, zname="A-B"){
   ggplot(Diff) +
     geom_hex(aes(x = x, y = y, fill = z),
              stat = "identity", alpha = 0.8) +
-    scale_fill_gradient2(name=zname, low="blue",high="red", mid="white",
+    scale_fill_gradient2(name=zname, low="slategray",high="firebrick1", mid="white",
                          trans=scales::trans_new("tanh",
                                                 transform = function(x) tanh(x/zmax),
                                                 inverse = function(x) atanh(x)*zmax),
