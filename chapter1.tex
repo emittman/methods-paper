@@ -1,18 +1,128 @@
-
+\newcommand{\op}{\operatorname}
+\newcommand{\ind}{\stackrel{ind.}{\sim}}
 \section{Introduction}
-Because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters. Choosing to model this underlying distribution with a parametric family that is too restrictive, i.e. leads to too crude an approximation of the underlying process, means that very little borrowing of information across genes.
+Profiling gene expression is common problem in modern biology. It is also a classic $n \ll p$ example, inspiring statistical advances in multiple testing. Because the presence of a meaningful biological effect fits awkwardly into the NHST framework, arguably most questions of interest are better addressed through estimation \citet{deseq2014}. This is the approach that we pursue here.
 
-We also want to estimate functionals of the parameters by integrating over the entire posterior.
+Current estimation methodologies can be understood as improving upon a ``straight" estimator by modeling gene-specific model parameters to borrow information across genes. \textit{Insert analogy to Stein's estimator}.
 
-\section{Bayesian nonparametric model for gene expression}
+Because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters. Herein lies dragons... In fact, given the large number of genes, G, the parameters of this distribution, if it should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. The impact of the hierarchical modeling approach is to ``regularize" inference for gene-specific parameters by shrinking the posterior distribution of these parameters away from the tails of the hierarchical distribution. Because of its essential role, the shape of the tail, vis a vis the choice of the hierarchical model, should be considered.
 
-Model goes here
+\citet*{lithio} considered reparameterizing the linear predictors to minimize the correlations of the gene-specific effects, in part to motivate the use of independent prior distributions. They find that the parameterization has a significant impact on the performance of the model. We hope avoid such sensitivities through the use of a nonparametric prior on these parameters.
 
-\section{Computation}
+In \citet{voom}, the authors proposed using a nonparametric estimate of the mean variance relationship using the straight estimates as data to produce precision estimates for each datum, thereby borrowing information about the measure of uncertainty within a gene. In Niemi et al, 2016, the authors used an empirical Bayes approach that considered the marginal empirical distributions of the straight estimators to inform the selection of prior distributions of the regression coefficients.
 
-\section{Voom}
-We'd like to know whether it makes a difference whether we use voom precision weights. It might be good to compare results with and without the weights for the non-parametric method vs a standard method, like vanilla limma.
+\citet{liu}
 
-\section{Analysis of heterosis data}
+\section{RNA-seq gene expression data}
+\label{sec:data}
+The starting point for our analyses is an array of RNA-seq total reads for $N$ samples, aligned to $G$ genes. For details on preprocessing, see (Nettleton and Datta?) 
+
+\subsection{Normalization and weighting}
+\paragraph{Normalization}
+
+
+\paragraph{voom}
+Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{V}(C|\mu)=\mu, \mu=\op{E}(C)$), if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads overdispersion of the counts. Often, the negative binomial distribution is used because its variance is quadratic with the mean ($\op{V}(C|\mu)=\mu+\phi\mu^2$). Because gene expression is usually measured on the log scale, through an application of the delta method, we can re-express this approximately in terms of the log-count ($\op{V}(\log C|\mu) \approx \frac{1}{\mu} + \phi$. While this assumption may be adequate for genes with similar expression levels, empirical studies suggest that the overdispersion parameter, $\phi$, tends to be larger for genes with lower expression than those with higher expression.
+
+\cite{voom} proposed \textit{voom}, a way to incorporate between-gene information about the mean-variance relationship in an RNA-seq data set through precision weighting of individual log-counts, making the data amenable to analysis with a linear model. It works by first calculating, for each gene, a sample standard deviation and mean log-count, and then fitting a LOWESS curve, treating the square root standard deviation as a response and the mean log-count as the predictor. Fitted values are then calculated for all counts, which are converted into precision weights.
+
+Rather than assuming the mean-variance relationship of the negative binomial and allowing for an adjustment of the degree of overdispersion from gene to gene, voom's precision weighting scheme estimates the mean-variance relationship from the data and assumes that it applies both within as well as across genes. We use the precision weights as an input to our model (Section \ref{sec:model}) which estimates a gene-specific variance parameter. Our use of voom in our pipeline implies a gene-specific mean-variance relationship \textit{for the log counts} given by
+$$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
+
+
+\subsection{Maize data of Paschold et al.}
+
+
+\section{Bayesian nonparametric model}
+\label{sec:model}
+Let $Y_{gi}$ represent the observed expression (possibly after transformation) for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. We will use the upper case letters $G$ and $N$, to denote the number of genes and samples, respectively. In addition, we accommodate possible observation-level weights, $w_{gn}$. For the observed data, we assume the data model
+\begin{equation}
+Y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right).
+\end{equation}
+Next, we propose to model jointly
+
+\begin{equation}
+\left(\beta_g^\top,\sigma^2_g\right) \ind \mathcal{P},
+\end{equation}
+where we specify a Dirichlet process on $\mathcal{P}$, i.e.,
+
+\begin{equation}
+\mathcal{P} \sim \op{DP}(\alpha \mbox{Q}).
+\end{equation}
+
+\iftoggle{thesis}{
+The use of this prior, due to \citet{ferguson}, is a distribution over probability distributions, such that for any finite disjoint partition $\{A_i\}_{i>=1}^n$ on $\mathbb{R}^p$, $\mathcal{P}$ is a random measure such that the joint distribution $\left(\mathcal{P}(A_1),\ldots,\mathcal{P}(A_n)\right) \sim \op{Dir}\left(\alpha Q(A_1),\ldots,\alpha Q(A_n)\right).$ The Dirichlet process has two parameters: $Q$, the base measure, represents a prior guess at the distribution. $\alpha$, the concentration parameter expresses the degree to which $\mathcal{P}$ will agree with $Q$ on any set $A$. This follows from the definition given above and known properties of the Dirichlet distribution, i.e., $\op{E}\left(\mathcal{P}(A)\right)=Q(A)$, and $\op{V}\left(\mathcal{P}(A)\right)=\frac{Q(A)(1 - Q(A)}{\alpha + 1}$, showing that $\mathcal{P}(A) \stackrel{p}{\rightarrow} Q(A)$ as $\alpha \rightarrow \infty$ for any set $A$. 
+}{}
+By modeling $\mathcal{P}$ with a Dirichlet process one can be noninformative about the overall shape of $\mathcal{P}$, allowing for irregular shapes, multimodality, and so forth. An argument can be made that by incorporating our uncertainty about these features of the distribution is required for coherent interpretation of the posterior distribution \citep{walker2010bayesian}. For more information about the properties of the DP, see \cite{ferguson}.
+
+As shown by \citet{sethuraman}, it follows from the definition of the Dirichlet process that $\mathcal{P}$ is almost surely discrete and realizations of $\mathcal{P}$ can be produced by the following stick-breaking construction:
+
+Let 
+\begin{equation}
+\mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)}.
+\end{equation}
+Here $\delta_{(.)}$ is the Dirac delta function. Note that although almost sure discreteness is a property applicable to ``draws'' from a DP, the posterior for $\mathcal{P}$ is in fact a mixture of DP \citep{antoniak}. An implication of discretness can be thought of as a ``bet on sparsity"; that there are actually a finite (but unspecified) number of unique values that $(\beta_g^\top,\sigma^2_g)$ can take.  
+ The ``atoms" distributed according to $Q$, specified by the product measure
+
+\begin{equation}
+\tilde{\beta}_k \sim \op{N}(m_\beta, C_\beta),\quad \tilde{\sigma}^2_k \sim \op{IG}(a_{\sigma^2}, b_{\sigma^2}).
+\end{equation}
+
+``$\op{IG}(a,b)$" refers to the inverse gamma distribution which we parameterize by shape and scale parameters, $a$ and $b$ with density given by
+\begin{equation*}
+p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
+\end{equation*}
+
+
+The mixture weights, $\pi_k$,  follow a stick-breaking process \cite{sethuraman}. Using the reparameterization,
+
+\begin{equation}
+\nu_k = \frac{\pi_k}{1 - \sum_{l=1}^{k-1} \pi_l},
+\end{equation}
+
+$\nu_k$ representing a proportion of the total probability remaining after $k-1$ breaks. For the stick-breaking construction of the DP, the $\nu_k$ are modeled by:
+\begin{equation}
+\nu_k \ind \op{Beta}(1, \alpha).
+\end{equation}
+
+This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$. 
+
+\section{Simulation study 1}
+
+\paragraph{Construction of simulated data:}
+\begin{enumerate}
+\item Select random draw $\mathcal{P}^{(s)}$ from posterior distribution of $\mathcal{P}$
+
+\item Sample $(\beta_g,\sigma^2_g)$ from $\mathcal{P}^{(s)}$
+
+\item Sample $y_{g,rep} \sim N(X\beta_g,\sigma^2_g)$
+\end{enumerate}
+Produce 6-10 such data sets.\\
+
+\paragraph{Analysis}
+
+Run Gibbs sampler for each data set:
+\begin{enumerate}
+\item look at coverage of posterior credible intervals for gene-specific parameters
+
+\item look at calibration of posterior probabilities for proposition(s) of interest
+
+\item compare MSE, coverage to voom-limma
+
+\end{enumerate}
+
+\section{Simulation study 2}
+Simulation of counts:
+To generate the simulated count data, we follow steps 1 and 2 of simulation study 1, and modify step 3: here, we bootstrap sample $W_{g,rep}$ from $W_g$ and simulate the pseudo-counts by
+$$y^*_{g,rep} \sim N(X\beta_g,\sigma^2_gW_{g,rep}^{-1}).$$
+Finally, we round $y^*_{g,rep}$ to obtain $y^*_{g,rep}$.
+
+Generally: Generate count data, truth estimated from model, and compare voom pipelines.
+
+Outputs: ROC curves, difference histograms
+
+\section{Analysis of Paschold data}
+
+
 
 

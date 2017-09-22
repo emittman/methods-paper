@@ -70,3 +70,4 @@ ph <- ggplot(plot.df2, aes(par_hd,hyb)) + geom_hex() + facet_grid(.~type,scales=
   theme_classic()+
   scale_fill_continuous(low="white",high="black", trans="log",
                         breaks=c(1,10,100,1000,10000))
+
