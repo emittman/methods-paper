@@ -1,6 +1,6 @@
 #! /bin/bash
 #SBATCH --time=0-10:00:00
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --ntasks-per-node=16
 #SBATCH --partition=gpu
 #SBATCH --error=info.err
@@ -13,4 +13,4 @@
 module load R
 module load cuda
 
-R --vanilla --no-save < small_test.R #run an R script using R
+R --vanilla --no-save < analyses.R #run an R script using R

@@ -35,9 +35,9 @@ generate_log_counts <- function(G, design, P.samples){
 
 run_mcmc <- function(data, design){
   require(cudarpackage)
-  dat <- formatData(counts=data$y, X=design, transform_y=FALSE, voom = FALSE)
+  dat <- formatData(counts=data$y, X=design, transform_y=identity, voom = FALSE)
   ind_est <- indEstimates(dat)
-  priors <- formatPriors(K=2^12, estimates=ind_est, A=3, B=3/sqrt(dat$G))
+  priors <- formatPriors(K=500, estimates=ind_est, A=3, B=3/sqrt(dat$G))
   C <- list(high_mean = matrix(c(0,1,1,0,0,
                                  0,-1,1,0,0), 2,5,byrow=T),
             hp_h12    = matrix(c(0,1,1,1,0,
@@ -50,23 +50,22 @@ run_mcmc <- function(data, design){
                                  0,-1,-1,1,0), 2, 5, byrow=T))
   contr <- formatControl(n_iter = 2,
                          thin = 1,
-                         warmup = 10,
+                         warmup = 200,
                          methodPi = "symmDirichlet",
                          idx_save = 1,
                          n_save_P = 1,
                          alpha_fixed = FALSE)
   
-  start.chain <- initFixedGrid(priors = priors, estimates = ind_est, C = C)
-  init_run <- mcmc(cuda_dat, priors, contr, start.chain)
+  start_chain <- initFixedGrid(priors = priors, estimates = ind_est, C = C)
+  init_run <- mcmc(dat, priors, contr, start_chain)
   
   id <- order(init_run[['state']]$pi, decreasing=TRUE)
-  init_chain <- with(init_run[['state']],
-                     formatChain(beta = beta[,id],
-                                 pi = exp(pi[id]),
-                                 tau2 = tau2[id],
-                                 zeta =  start.chain$zeta,
-                                 alpha = alpha,
-                                 C = C))
+  init_chain <- formatChain(beta = init_run[['state']]$beta[,id],
+                                 pi = exp(init_run[['state']]$pi[id]),
+                                 tau2 = init_run[['state']]$tau2[id],
+                                 zeta =  start_chain$zeta,
+                                 alpha = init_run[['state']]$alpha,
+                                 C = C)
   
   contr$n_iter <- as.integer(3)
   contr$thin <- as.integer(1)
