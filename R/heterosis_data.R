@@ -14,10 +14,6 @@ my_dat_wide <- Paschold2012 %>%
 zero_id <- which(apply(data.matrix(my_dat_wide[,-1]), 1, function(x) all(x==0)))
 my_dat_wide <- my_dat_wide[-zero_id,]
 
-#transform counts to log (+1) scale, normalize
-# my_dat_wide[,2:17] <- normalizeData(data.matrix(my_dat_wide[,2:17]),
-                                   # group=rep(1:4, each=4), trans.to.log = TRUE)
-
 save(my_dat_wide, file="data/heterosis_counts.RData")
 
 #convert to long format, add indicators for genotype and flowcell
@@ -39,7 +35,7 @@ X <- filter(my_dat, GeneID == my_dat$GeneID[1]) %>%
 
 y <- data.matrix(my_dat_wide[,2:17])
 
-cuda_dat <- formatData(counts = y, groups = rep(1:2, each=4), X = X, voom = TRUE, transform_y=identity)
+cuda_dat <- formatData(counts = y, groups = rep(1:2, each=4), X = X, voom = TRUE, normalize=TRUE, transform_y=identity)
 ind_est <- indEstimates(cuda_dat)
 
 save(ind_est, file="data/ind-est-heterosis.RData")

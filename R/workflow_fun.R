@@ -5,7 +5,7 @@ initialize_chain <- function(seed, methodPi, n.init, n.warmup, n.sample){
   set.seed(seed)
   load("data/cuda-dat-heterosis.Rdata")
   load("data/ind-est-heterosis.RData")
-  priors <- formatPriors(K=2^12*1.5625, estimates = ind_est, A=3, B=3/sqrt(cuda_dat$G))
+  priors <- formatPriors(K=2^12*1.5, estimates = ind_est, A=5, B=5/sqrt(cuda_dat$G))
   
   C <- list(extreme_heterosis = matrix(c(0, 1, 1, 1, 0,
 			 	 0, 1, 1,-1, 0,
