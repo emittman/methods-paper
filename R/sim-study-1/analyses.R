@@ -4,7 +4,7 @@ library(cudarpackage)
 
 source("functions.R")
 
-G <- 1000
+G <- 10000
 
 #load Psamples
 load("data/P-samples.RData")
