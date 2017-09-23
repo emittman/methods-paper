@@ -1,6 +1,6 @@
 #! /bin/bash
 #SBATCH --time=0-10:00:00
-#SBATCH --nodes=2
+#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=16
 #SBATCH --partition=gpu
 #SBATCH --error=info.err

@@ -19,6 +19,9 @@ my_analyses <- analyses(plan(mcmc = run_mcmc(..dataset.., X)
                           #,
                           #limma = fit_limma(..dataset..)
                           ), datasets = my_data)
+#compute coverage of 95% credible intervals for beta_{gj}
 
-make(my_data, jobs=1)
-make(my_analyses, jobs=1)
+
+
+make(my_data, jobs=3)
+make(my_analyses, jobs=3)
