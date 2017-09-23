@@ -6,9 +6,10 @@ source("functions.R")
 
 G <- 1000
 
-mcmc <- readRDS("../arrayOutput/chain1_sb.rds")
-Psamples <- mcmc$samples$P
+#load Psamples
+load("data/P-samples.RData")
 
+#load heterosis data ... to get design matrix
 load("../data/heterosis_long.RData")
 X <- filter(my_dat, GeneID == my_dat$GeneID[1]) %>%
   model.matrix(~parent_hd+hybrid+hybrid_hd+flow_cell, data=.)

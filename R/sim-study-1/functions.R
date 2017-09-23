@@ -47,10 +47,12 @@ run_mcmc <- function(data, design){
             hp_h21    = matrix(c(0,1,1,-1,0,
                                  0,-1,1,-1,0), 2,5, byrow=T),
             lp_h21    = matrix(c(0,1,-1,1,0,
-                                 0,-1,-1,1,0), 2, 5, byrow=T))
+                                 0,-1,-1,1,0), 2, 5, byrow=T),
+            de_p1     = matrix(c(0,1,0,0,0), 1, 5, byrow=T)
+            )
   contr <- formatControl(n_iter = 2,
                          thin = 1,
-                         warmup = 200,
+                         warmup = 20,
                          methodPi = "symmDirichlet",
                          idx_save = 1,
                          n_save_P = 1,
