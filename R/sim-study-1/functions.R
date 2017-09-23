@@ -70,8 +70,8 @@ run_mcmc <- function(data, design){
   contr$n_iter <- as.integer(3)
   contr$thin <- as.integer(1)
   contr$warmup <- as.integer(3)
-  contr$idx_save <- 1:dat$G
-  contr$n_save_P <- as.integer(100)
+  contr$idx_save <- 0:(dat$G-1)
+  contr$n_save_P <- as.integer(1)
   contr$methodPi <- "stickBreaking"
   
   samples <- mcmc(dat, priors, contr, init_chain)
