@@ -37,7 +37,7 @@ run_mcmc <- function(data, design){
   require(cudarpackage)
   dat <- formatData(counts=data$y, X=design, transform_y=identity, voom = FALSE)
   ind_est <- indEstimates(dat)
-  priors <- formatPriors(K=2^12, estimates=ind_est, A=3, B=3/sqrt(dat$G))
+  priors <- formatPriors(K=2^11, estimates=ind_est, A=3, B=3/sqrt(dat$G))
   C <- list(high_mean = matrix(c(0,1,1,0,0,
                                  0,-1,1,0,0), 2,5,byrow=T),
             hp_h12    = matrix(c(0,1,1,1,0,
@@ -52,7 +52,7 @@ run_mcmc <- function(data, design){
             )
   contr <- formatControl(n_iter = 2,
                          thin = 1,
-                         warmup = 5000,
+                         warmup = 10000,
                          methodPi = "symmDirichlet",
                          idx_save = 1,
                          n_save_P = 1,
@@ -69,7 +69,7 @@ run_mcmc <- function(data, design){
                                  alpha = init_run[['state']]$alpha,
                                  C = C)
   
-  contr$n_iter <- as.integer(30000)
+  contr$n_iter <- as.integer(50000)
   contr$thin <- as.integer(15)
   contr$warmup <- as.integer(10000)
   contr$idx_save <- 0:(dat$G-1)

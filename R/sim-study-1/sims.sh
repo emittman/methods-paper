@@ -1,7 +1,7 @@
 #! /bin/bash
-#SBATCH --time=4-0:00:00
-#SBATCH --nodes=3
-#SBATCH --ntasks-per-node=16
+#SBATCH --time=1:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=3
 #SBATCH --partition=gpu
 #SBATCH --error=info.err
 #SBATCH --output=info.out
@@ -13,4 +13,4 @@
 module load R
 module load cuda
 
-R --vanilla --no-save <  worker_task.R #run an R script using R
+R --vanilla --no-save <  sims.R #run an R script using R

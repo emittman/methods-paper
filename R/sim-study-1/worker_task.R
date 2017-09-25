@@ -13,9 +13,8 @@ lapply(pkgs, library,  character.only = TRUE, quietly=TRUE )
 load('data/my_analyses.RData')
 source('functions.R')
 sim_name <- paste("sim_",i,sep="")
-loadd(sim_name)
-loadd(X)
+loadd()
 this_mcmc <- run_mcmc(get(sim_name), X)
-saveRDS(this_mcmc, file=paste("mcmc_sim_",i,sep=""))
+saveRDS(this_mcmc, file=paste("saved_mcmc/mcmc_sim_",i,sep=""))
 
 
