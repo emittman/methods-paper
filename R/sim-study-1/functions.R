@@ -69,8 +69,8 @@ run_mcmc <- function(data, design){
                                  alpha = init_run[['state']]$alpha,
                                  C = C)
   
-  contr$n_iter <- as.integer(50000)
-  contr$thin <- as.integer(15)
+  contr$n_iter <- as.integer(200000)
+  contr$thin <- as.integer(50)
   contr$warmup <- as.integer(10000)
   contr$idx_save <- 0:(dat$G-1)
   contr$n_save_P <- as.integer(100)
