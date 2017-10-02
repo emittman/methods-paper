@@ -1,6 +1,6 @@
 #! /bin/bash
 #SBATCH --time=4-0:00:00
-#SBATCH --nodes=4
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --partition=gpu
 #SBATCH --error=mcmc/info%a.err

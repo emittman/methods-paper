@@ -10,7 +10,6 @@ lapply(pkgs, library,  character.only = TRUE, quietly=TRUE )
 
 # inputs
 
-load('data/my_analyses.RData')
 source('functions.R')
 sim_name <- paste("sim_",i,sep="")
 loadd()
