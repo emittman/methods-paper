@@ -66,7 +66,7 @@ run_mcmc <- function(data, design, voom=TRUE){
   
   dat <- formatData(counts=data$y, X=design, transform_y=identity, voom = voom, normalize = voom)
   ind_est <- indEstimates(dat)
-  priors <- formatPriors(K=2^11, estimates=ind_est, A=3, B=3/sqrt(dat$G))
+  priors <- formatPriors(K=2^11*1.5, estimates=ind_est, A=3, B=3/sqrt(dat$G))
   C <- list(high_mean = matrix(c(0,1,1,0,0,
                                  0,-1,1,0,0), 2,5,byrow=T),
             hp_h12    = matrix(c(0,1,1,1,0,
