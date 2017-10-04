@@ -42,8 +42,10 @@ generate_counts <- function(oldG, newG, design, prereqs){
   }))
   y <- round(2^(ystar))
   zero_id <- which(apply(y, 1, function(g) all(g==0)))
-  stopifnot(length(zero_id) <= newG*1.5)
-  y <- y[-zero_id,]
+  stopifnot(length(zero_id) <= newG*1.25)
+  if(length(zero_id)>0){
+    y <- y[-zero_id,]
+  }
   y <- y[1:newG,]
   sim <- list(y=y,
               truth = list(beta = beta_rep,
