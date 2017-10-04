@@ -17,7 +17,8 @@ sim_study_2_setup <- function(){
   
   prereqs <- list(betas = fit$coefficients,
                   sigma2 = fit_eb$s2.post,
-                  weights = voom_dge$weights)
+                  weights = voom_dge$weights,
+                  eff.lib.size = with(dge$samples, lib.size*norm.factors))
   prereqs
 }
 
@@ -30,15 +31,18 @@ sim_study_2_setup <- function(){
 
 generate_counts <- function(oldG, newG, design, prereqs){
   N <- nrow(design)
-  samp_id <- sample(oldG, newG*1.25)
+  samp_id <- sample(oldG, newG*1.5)
   
   beta_rep <- prereqs$beta[samp_id,]
   sigma2_rep <- prereqs$sigma2[samp_id]
   weights_rep <- prereqs$weights[samp_id,]
-  ystar <- t(sapply(1:(newG*1.25), function(g) rnorm(16, X%*%beta_rep[g,], sqrt(sigma2_rep[g]/weights_rep[g,]))))
+  offset <- mean(log2(prereqs$eff.lib.size)) - log2(1e6)
+  ystar <- t(sapply(1:(newG*1.5), function(g){
+    rnorm(16, X%*%beta_rep[g,] + offset, sqrt(sigma2_rep[g]/weights_rep[g,]))
+  }))
   y <- round(2^(ystar))
   zero_id <- which(apply(y, 1, function(g) all(g==0)))
-  stopifnot(length(zero_id) <= newG*1.25)
+  stopifnot(length(zero_id) <= newG*1.5)
   y <- y[-zero_id,]
   y <- y[1:newG,]
   sim <- list(y=y,
