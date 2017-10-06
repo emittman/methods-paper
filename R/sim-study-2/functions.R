@@ -45,12 +45,18 @@ generate_counts <- function(oldG, newG, design, prereqs){
   stopifnot(length(zero_id) <= newG*1.25)
   if(length(zero_id)>0){
     y <- y[-zero_id,]
+    beta <- beta[-zero_id]
+    sigma2 <- sigma2_rep[-zero_id]
+    weights <- weights_rep[-zero_id,]
   }
+  beta <- beta[1:newG,]
+  sigma2 <- sigma2[1:newG]
+  weights <- weights[1:newG,]
   y <- y[1:newG,]
   sim <- list(y=y,
-              truth = list(beta = beta_rep,
-                           sigma2 = sigma2_rep,
-                           weights = weights_rep))
+              truth = list(beta = beta,
+                           sigma2 = sigma2,
+                           weights = weights))
   sim
 }
 
