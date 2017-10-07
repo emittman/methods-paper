@@ -11,7 +11,10 @@ Because there are many genes to observe, a gene expression experiment presents a
 
 In \citet{voom}, the authors proposed using a nonparametric estimate of the mean variance relationship using the straight estimates as data to produce precision estimates for each datum, thereby borrowing information about the measure of uncertainty within a gene. In Niemi et al, 2016, the authors used an empirical Bayes approach that considered the marginal empirical distributions of the straight estimators to inform the selection of prior distributions of the regression coefficients.
 
-\citet{liu}
+\citet{liu} proposed a semiparametric model for differential expression. In their model, a gamma mixture of Poisson was used and information was borrowed across genes only for the log-fold-change parameter, which was given a Dirichlet process prior.
+
+In the present article, we propose a Bayesian nonparametric model which extends the approach taken in \citet{liu} by modeling the joint distribution of all gene-specific parameters with a Dirichlet process. The goal of this work is to provide a method that increases the amount of information being borrowed across genes and is insensitive to the choice of parameterization.
+
 
 \section{RNA-seq gene expression data}
 \label{sec:data}
@@ -88,6 +91,7 @@ $\nu_k$ representing a proportion of the total probability remaining after $k-1$
 This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$. 
 
 \section{Simulation study 1}
+To investigate the performance of our method, we simulated log-expression data as follows:
 
 \paragraph{Construction of simulated data:}
 \begin{enumerate}
@@ -98,6 +102,9 @@ This assumption induces a stochastically decreasing ordering of the weights. Add
 \item Sample $y_{g,rep} \sim N(X\beta_g,\sigma^2_g)$
 \end{enumerate}
 Produce 6-10 such data sets.\\
+
+
+
 
 \paragraph{Analysis}
 
@@ -112,10 +119,14 @@ Run Gibbs sampler for each data set:
 \end{enumerate}
 
 \section{Simulation study 2}
+To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data as follows:
 Simulation of counts:
 To generate the simulated count data, we follow steps 1 and 2 of simulation study 1, and modify step 3: here, we bootstrap sample $W_{g,rep}$ from $W_g$ and simulate the pseudo-counts by
 $$y^*_{g,rep} \sim N(X\beta_g,\sigma^2_gW_{g,rep}^{-1}).$$
 Finally, we round $y^*_{g,rep}$ to obtain $y^*_{g,rep}$.
+
+
+
 
 Generally: Generate count data, truth estimated from model, and compare voom pipelines.
 
