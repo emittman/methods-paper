@@ -13,4 +13,4 @@
 module load R
 module load cuda
 
-R --vanilla --no-save <  worker_task_voom.R #run an R script using R
+R --vanilla --no-save <  worker_task_novoom.R #run an R script using R
