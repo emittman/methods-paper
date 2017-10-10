@@ -73,7 +73,8 @@ run_mcmc <- function(data, design, voom=TRUE){
     dge <- DGEList(data$y) %>% calcNormFactors(method="TMM")
     eff.lib.size <- dge[[2]]$lib.size * dge[[2]]$norm.factors
     G <- nrow(data$y)
-    log_cpm <- log2(data$y+.5) - log2(matrix(rep(eff.lib.size, each=G), G, 16)+1) + log2(1e6) 
+    log_cpm <- log2(data$y+.5) - log2(matrix(rep(eff.lib.size, each=G), G, 16)+1) + log2(1e6)
+    data$y <- log_cpm
   }
   
   dat <- formatData(counts=data$y, X=design, transform_y=identity, voom = voom, normalize = voom)
