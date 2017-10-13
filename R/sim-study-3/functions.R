@@ -10,7 +10,7 @@ run_mcmc <- function(data, design){
 
   dat <- formatData(counts=log_cpm, X=design, transform_y=identity, voom = FALSE, normalize = FALSE)
   ind_est <- indEstimates(dat)
-  priors <- formatPriors(K=2^12, estimates=ind_est, A=3, B=3/sqrt(dat$G))
+  priors <- formatPriors(K=2^10, estimates=ind_est, A=3, B=3/sqrt(dat$G))
   C <- list(b2 = matrix(c(0,1,0,0,0), 1,5,byrow=T),
             b3 = matrix(c(0,0,1,0,0), 1,5,byrow=T),
             b4 = matrix(c(0,0,0,1,0), 1,5,byrow=T),
