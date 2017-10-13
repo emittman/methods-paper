@@ -3,10 +3,10 @@ run_mcmc <- function(data, design){
   require(limma)
   require(edgeR)
   require(dplyr)
-  dge <- DGEList(data) %>% calcNormFactors(method="TMM")
-  eff.lib.size <- dge[[2]]$lib.size * dge[[2]]$norm.factors
+  # dge <- DGEList(data) %>% calcNormFactors(method="TMM")
+  # eff.lib.size <- dge[[2]]$lib.size * dge[[2]]$norm.factors
   G <- nrow(data)
-  log_cpm <- log2(data +.5) - log2(matrix(rep(eff.lib.size, each=G), G, 16)+1) + log2(1e6)
+  log_cpm <- log(data +1) #- log2(matrix(rep(eff.lib.size, each=G), G, 16)+1) + log2(1e6)
 
   dat <- formatData(counts=log_cpm, X=design, transform_y=identity, voom = FALSE, normalize = FALSE)
   ind_est <- indEstimates(dat)
@@ -35,9 +35,9 @@ run_mcmc <- function(data, design){
                             alpha = init_run[['state']]$alpha,
                             C = C)
   
-  contr$n_iter <- as.integer(50000)
+  contr$n_iter <- as.integer(80000)
   contr$thin <- as.integer(25)
-  contr$warmup <- as.integer(10000)
+  contr$warmup <- as.integer(30000)
   contr$idx_save <- 0:(dat$G-1)
   contr$n_save_P <- as.integer(100)
   contr$methodPi <- "stickBreaking"
