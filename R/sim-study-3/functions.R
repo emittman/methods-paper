@@ -2,6 +2,7 @@ run_mcmc <- function(data, design){
   require(cudarpackage)
   require(limma)
   require(edgeR)
+  require(dplyr)
   dge <- DGEList(data) %>% calcNormFactors(method="TMM")
   eff.lib.size <- dge[[2]]$lib.size * dge[[2]]$norm.factors
   G <- nrow(data$y)
