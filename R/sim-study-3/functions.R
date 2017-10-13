@@ -5,7 +5,7 @@ run_mcmc <- function(data, design){
   require(dplyr)
   dge <- DGEList(data) %>% calcNormFactors(method="TMM")
   eff.lib.size <- dge[[2]]$lib.size * dge[[2]]$norm.factors
-  G <- nrow(data$y)
+  G <- nrow(data)
   log_cpm <- log2(data +.5) - log2(matrix(rep(eff.lib.size, each=G), G, 16)+1) + log2(1e6)
 
   dat <- formatData(counts=log_cpm, X=design, transform_y=identity, voom = FALSE, normalize = FALSE)
