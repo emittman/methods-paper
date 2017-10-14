@@ -18,7 +18,7 @@ run_mcmc <- function(data, design){
   )
   contr <- formatControl(n_iter = 2,
                          thin = 1,
-                         warmup = 10000,
+                         warmup = 30000,
                          methodPi = "symmDirichlet",
                          idx_save = 1,
                          n_save_P = 1,
@@ -35,9 +35,9 @@ run_mcmc <- function(data, design){
                             alpha = init_run[['state']]$alpha,
                             C = C)
   
-  contr$n_iter <- as.integer(80000)
-  contr$thin <- as.integer(25)
-  contr$warmup <- as.integer(30000)
+  contr$n_iter <- as.integer(100000)
+  contr$thin <- as.integer(50)
+  contr$warmup <- as.integer(50000)
   contr$idx_save <- 0:(dat$G-1)
   contr$n_save_P <- as.integer(100)
   contr$methodPi <- "stickBreaking"

@@ -10,12 +10,12 @@ dir5 <- sample(pi/4 + c(0, pi/2), 10000, replace=TRUE)
 
 mag <- rnorm(10000, 2, .5)
 
-x1 <- mag*cos(dir1) + 2.5
+x1 <- mag*cos(dir1) + 4.55
 x2 <- mag*sin(dir1)*cos(dir2)
 x3 <- mag*sin(dir1)*sin(dir2)*cos(dir3)
 x4 <- mag*sin(dir1)*sin(dir2)*sin(dir3)*cos(dir4)
 x5 <- mag*sin(dir1)*sin(dir2)*sin(dir3)*sin(dir4)*cos(dir5)
-x6 <- (mag*sin(dir1)*sin(dir2)*sin(dir3)*sin(dir4)*sin(dir5) - .8)
+x6 <- (mag*sin(dir1)*sin(dir2)*sin(dir3)*sin(dir4)*sin(dir5) - .3)
 
 plot(x2,x4)
 abline(0,1)
@@ -52,7 +52,6 @@ names(y) <- c('a_1','a_2','a_3','a_4',
               'ba_1','ba_2','ba_3','ba_4')
 head(y)
 
-setwd("R/sim-study-3/dat")
 save(y, file="R/sim-study-3/data/counts_1.RData")
 save(X, file="R/sim-study-3/data/design.RData")
 save(df, file="R/sim-study-3/data/truth.RData")
