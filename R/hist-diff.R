@@ -56,6 +56,68 @@ diffHexHist <- function(df1, df2, bins, zmax=NA, zname="A-B"){
     guides(alpha = FALSE, size = FALSE)+ theme_bw()
 } 
 
+PointwiseMedianHex <- function(P, dim1=2, dim2=3, bins=30, zmax=NA, zname="Pointwise median"){
+  require(hexbin)
+  require(ggplot2)
+  require(scales)
+  require(plyr)
+  require(dplyr)
+  dfList <- alply(P, 3, function(x){
+    df <- data.frame(x[,c(1,dim1,dim2)])
+    names(df) <- c("w","x","y")
+    df
+  })
+  makeHexData <- function(df) {
+    h <- hexbin(df$x, df$y, xbins=bins, xbnds = xbnds, ybnds = ybnds, IDs = TRUE)
+    cell_weights <- cbind(df,id=h@cID) %>%
+      ddply(.(id), summarize, w=sum(w))
+    data.frame(hcell2xy(h),
+               z = cell_weights$w,
+               cid = h@cell)
+  }  ## find the bounds for the complete data 
+  xrngs <- sapply(dfList, function(s) range(s$x))
+  xbnds <- c(min(xrngs[1,]),max(xrngs[2,]))
+  yrngs <- sapply(dfList, function(s) range(s$y))
+  ybnds <- c(min(yrngs[1,]),max(yrngs[2,]))
+
+  out <- llply(dfList, function(s){
+    makeHexData(s)
+  })
+  
+  merged <- do.call(what = rbind, args = out)
+  
+  n_cells <- length(unique(merged$cid))
+  n_iter <- length(out)
+  
+  out <- ddply(merged, .(x,y,cid), function(r){
+                 zeros <- n_iter - length(r$z)
+                 if(zeros==0){
+                   zComplete <- r$z 
+                 } else{
+                   zComplete <- c(r$z,rep(0,zeros))
+                 }
+                 # median = median(zComplete)
+                 mean = mean(zComplete, tr=.1)
+                 sd = if(mean==0) 0 else{sd(zComplete)}
+                 data.frame(mean=mean,sd=sd)
+  })
+  
+  p1 <- filter(out, mean > 0) %>%
+    ggplot() +
+    geom_hex(aes(x = x, y = y, fill = mean),
+             stat = "identity") +
+    scale_fill_continuous(name="pointwise (trimmed) mean", trans="log",
+                          low="white",high="midnightblue",breaks=10^-(2:10)
+    )
+  p2 <- filter(out, mean > 0) %>%
+    ggplot() +
+    geom_hex(aes(x = x, y = y, fill = sd),
+             stat = "identity") +
+    scale_fill_continuous(name="pointwise normalized SD", trans="log",
+                          low="white",high="midnightblue",breaks=10^-(2:10)
+    )
+  list(p1,p2)
+} 
 
 
 # ## find the bounds for the complete data 

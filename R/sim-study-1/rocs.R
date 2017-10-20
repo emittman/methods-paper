@@ -13,7 +13,7 @@ C <- list(high_mean = matrix(c(0,1,1,0,0,
           de_p1     = matrix(c(0,1,0,0,0), 1, 5, byrow=T)
 )
 
-
+library(plyr)
 
 all_rocs <- ldply(1:10, function(j){
   sim <- readRDS(paste("sim_", j, sep=""))
@@ -49,13 +49,17 @@ limma_fit <- lmFit(y1, design = X)
 limma_fit <- eBayes(limma_fit)
 tt <- topTable(fit = limma_fit, number = 10000, coef = 2)
 tt$g <- row.names(tt)
-tt <- filter(tt, logFC<0)
+tt <- filter(tt, logFC>0)
 id_de_1 <- as.numeric(tt$g)
 roc_de_1 <- data.frame(type="limma",
-                       tpr = cumsum(eval_hyp[[6]][id_de_1])/sum(eval_hyp[[6]]),
-                       fpr = cumsum(1-eval_hyp[[6]][id_de_1])/sum(1-eval_hyp[[6]]))
+                       TPR = cumsum(eval_hyp[[6]][id_de_1])/sum(eval_hyp[[6]]),
+                       FPR = cumsum(1-eval_hyp[[6]][id_de_1])/sum(1-eval_hyp[[6]]))
 
+roc_de_bnp <- filter(all_rocs, sim==1, hypothesis=="de_p1") %>%
+  select(TPR,FPR) %>% mutate(type="bnp")
 
+rbind(roc_de_1,roc_de_bnp) %>% filter(FPR<.1)%>%
+  ggplot(aes(FPR, TPR, color=type)) + geom_line() + geom_abline(slope=1, lty=2)
 
 
 

@@ -60,6 +60,23 @@ generate_counts <- function(oldG, newG, design, prereqs){
   sim
 }
 
+#'@title estGammaPrior
+#'@par x vector of sample variances
+#'@return named vector: a = shape and b = scale
+estGammaPrior <- function(x){
+  a <- 1
+  b <- 1
+  for(i in 1:1000){
+    anew <- mean(1/x+.0001, tr=.1)*b
+    bnew <- 1/( quantile(1/x, probs=.95)/qgamma(.95,anew,1) )
+    if(abs(anew-a)<.0001 & abs(bnew-b)<.0001){
+      break
+    }
+    a <- anew
+    b <- bnew
+  }
+  return(c(a=a,b=b))
+}
 
 #' @title run_mcmc
 #' @par data
@@ -69,6 +86,14 @@ run_mcmc <- function(data, design, voom=TRUE){
   require(cudarpackage)
   require(limma)
   require(edgeR)
+  require(DESeq2)
+  #use deseq to estimate priors
+  deseq.dat <- DESeqDataSetFromMatrix(data$y, colData = as.data.frame(design[,-1]),
+                                      design = ~ parent_hd+hybrid+hybrid_hd+flow_cell)
+  fit.deseq <- DESeq(deseq.dat)
+  mles <- estimateMLEForBetaPriorVar(fit.deseq)
+  priors.beta <- estimateBetaPriorVar(mles, betaPriorMethod = "quantile")
+  
   if(!voom){
     dge <- DGEList(data$y) %>% calcNormFactors(method="TMM")
     eff.lib.size <- dge[[2]]$lib.size * dge[[2]]$norm.factors
@@ -79,7 +104,13 @@ run_mcmc <- function(data, design, voom=TRUE){
   
   dat <- formatData(counts=data$y, X=design, transform_y=identity, voom = voom, normalize = voom)
   ind_est <- indEstimates(dat)
+  priors.sigma2 <- estGammaPrior(ind_est$sigma2)
+  
   priors <- formatPriors(K=2^12, estimates=ind_est, A=3, B=3/sqrt(dat$G))
+  priors$lambda2[2:5] <- 1/priors.beta[2:5]
+  priors$a <- priors.sigma2[1]
+  priors$b <- priors.sigma2[2]
+  
   C <- list(high_mean = matrix(c(0,1,1,0,0,
                                  0,-1,1,0,0), 2,5,byrow=T),
             hp_h12    = matrix(c(0,1,1,1,0,
