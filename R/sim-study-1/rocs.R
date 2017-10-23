@@ -47,7 +47,10 @@ X <- filter(my_dat, GeneID == my_dat$GeneID[1]) %>%
 
 limma_fit <- lmFit(y1, design = X)
 limma_fit <- eBayes(limma_fit)
-tt <- topTable(fit = limma_fit, number = 10000, coef = 2)
+
+
+tt <- topTreat(fit = limma_fit, coef = 2, lfc = .25)
+# tt <- topTable(fit = limma_fit, number = 10000, coef = 3)
 tt$g <- row.names(tt)
 tt <- filter(tt, logFC>0)
 id_de_1 <- as.numeric(tt$g)
@@ -57,10 +60,16 @@ roc_de_1 <- data.frame(type="limma",
 
 roc_de_bnp <- filter(all_rocs, sim==1, hypothesis=="de_p1") %>%
   select(TPR,FPR) %>% mutate(type="bnp")
+roc_de_bnp <- data.frame(type="bnp",
+                         TPR=cumsum((1-eval_hyp[[6]])[ord_hm])/sum(1-eval_hyp[[6]]),
+                         FPR = cumsum(eval_hyp[[6]][ord_hm])/sum(eval_hyp[[6]]))
 
 rbind(roc_de_1,roc_de_bnp) %>% filter(FPR<.1)%>%
   ggplot(aes(FPR, TPR, color=type)) + geom_line() + geom_abline(slope=1, lty=2)
 
+
+ggplot(filter(roc.df, FPR<.1), aes(FPR,TPR, color=type)) +
+  geom_line() + facet_grid(threshold~p)
 
 
 library(ggplot2)
@@ -72,11 +81,15 @@ ggplot(aes(FPR, TPR)) + geom_line() + geom_abline(slope=1, lty=2) +
 
 sim1 <- readRDS("sim_1")
 true1 <- sim1$truth$beta
-products <- lapply(C, function(hyp) hyp%*%t(true1)>0)
+products <- lapply(C, function(hyp) hyp%*%t(true1)>.25)
 eval_hyp <- lapply(products, function(product) apply(product, 2, min))
 
 mcmc1 <- readRDS("../saved_mcmc/mcmc_sim_1")
 ord_hm <- order(mcmc1$summaries$probs[6,], decreasing =FALSE)
+probs <- apply(mcmc1$samples$beta[2,,], 2, function(g){
+  mean(g > .25)
+})
+ord_hm <- order(probs, decreasing = FALSE)
 
 true_pos_rate <- cumsum((1-eval_hyp[[6]])[ord_hm])/sum(1-eval_hyp[[6]])
 false_pos_rate <- cumsum(eval_hyp[[6]][ord_hm])/sum(eval_hyp[[6]])

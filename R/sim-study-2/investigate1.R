@@ -1,4 +1,6 @@
 library(limma)
+s <- readRDS("R/sim-study-2/saved_mcmc/mcmc_voom_sim_1")
+sim <- readRDS("R/sim-study-2/sims/sim_1")
 
 load("R/data/heterosis_design.RData")
 
@@ -53,7 +55,7 @@ bnp.topG <- order(s$summaries$probs[7,], decreasing = TRUE)
 # bnp2.topG <- order(s2$summaries$probs[7,], decreasing = TRUE)
 # which.pos2 <- which(s2$summaries$means_betas[3,bnp2.topG]>-0.1)
 # bnp2.topG <- bnp2.topG[which.pos2]
-gene_id <- which(ses.hyb<.007)
+# gene_id <- which(ses.hyb<.007)
 bnp2.topG <- bnp.topG[which(bnp.topG %in% gene_id)]
 
 
