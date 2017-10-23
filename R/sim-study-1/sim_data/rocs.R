@@ -4,12 +4,13 @@ library(plyr)
 library(dplyr)
 library(limma)
 
-roc.df <- ldply(2:5, function(p){
-  ldply(.2*0:5, function(th){
-    ldply(1:10, function(i){
-      sim <- readRDS(paste("sim_",i,sep=""))
-      mcmc <- readRDS(paste("../saved_mcmc/mcmc_sim_",i,sep=""))
-      truth <- sim$truth$beta[,p]>th
+roc.df <- ldply(1:10, function(i){
+  sim <- readRDS(paste("sim_",i,sep=""))
+  mcmc <- readRDS(paste("../saved_mcmc/mcmc_sim_",i,sep=""))
+  truth <- sim$truth$beta[,p]>th
+  
+  df <- ldply(.2*0:5, function(th){
+    ldply(2:5, function(p){
       
       #ROC for limma fit
       limma_fit <- lmFit(sim$y, design = X)
@@ -32,6 +33,7 @@ roc.df <- ldply(2:5, function(p){
       data.frame(threshold=th, p=p, rbind(roc.bnp, roc.limma)) %>% filter(FPR<.1)
     })
   })
+  df
 })
 
 saveRDS(roc.df, "../data/roc-df.rds")
