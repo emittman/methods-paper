@@ -5,7 +5,7 @@ ss  = Sys.getenv("SLURM_ARRAY_TASK_ID")
 i = as.numeric(ss) + 1
 
 # 0 ) libraries and functions
-pkgs <- c('dplyr', 'cudarpackage')
+pkgs <- c('dplyr', 'cudarpackage', 'DESeq2')
 lapply(pkgs, library,  character.only = TRUE, quietly=TRUE )
 
 # inputs
