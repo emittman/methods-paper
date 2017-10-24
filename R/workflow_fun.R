@@ -24,6 +24,7 @@ initialize_chain <- function(seed, methodPi, n.init, n.warmup, n.sample){
   load("data/cuda-dat-heterosis.Rdata")
   load("data/ind-est-heterosis.RData")
   load("data/heterosis_counts.RData")
+  load("data/heterosis_design.RData")
   #use deseq to estimate priors
   deseq.dat <- DESeqDataSetFromMatrix(data.matrix(my_dat_wide[,-1]), colData = as.data.frame(X[,-1]),
                                       design = ~ parent_hd+hybrid+hybrid_hd+flow_cell)
