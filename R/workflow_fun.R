@@ -1,3 +1,21 @@
+#'@title estGammaPrior
+#'@par x vector of sample variances
+#'@return named vector: a = shape and b = scale
+estGammaPrior <- function(x){
+  a <- 1
+  b <- 1
+  for(i in 1:1000){
+    anew <- mean(1/x+.0001, tr=.1)*b
+    bnew <- 1/( quantile(1/x, probs=.95)/qgamma(.95,anew,1) )
+    if(abs(anew-a)<.0001 & abs(bnew-b)<.0001){
+      break
+    }
+    a <- anew
+    b <- bnew
+  }
+  return(c(a=a,b=b))
+}
+
 initialize_chain <- function(seed, methodPi, n.init, n.warmup, n.sample){
 
   cat(methodPi)  
