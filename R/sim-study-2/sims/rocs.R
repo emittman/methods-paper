@@ -14,12 +14,25 @@ roc.df <- function(grp){
   ldply(grp, function(i){
     sim <- readRDS(paste("sim_",i,sep=""))
     mcmc <- readRDS(paste("../saved_mcmc/mcmc_voom_sim_",i,sep=""))
+    
+    #Fit DESeq2
     deseq.dat <- DESeqDataSetFromMatrix(sim$y, colData = as.data.frame(X[,2:5]),
                                         design = ~ parent_hd+hybrid+hybrid_hd+flow_cell)
     fit.deseq <- DESeq(deseq.dat)
-
+    
+    #Fit Voom
+    voom.dat <- DGEList(sim$y) %>% calcNormFactors(method="TMM")
+    voom.dat.voom <- voom(voom.dat, design = X)
+    voom.fit <- lmFit(voom.dat.voom)
+    voom.fit <- eBayes(voom.fit)
+    
+    # #Fit edgeR
+    # edgeR.dat <- estimateCommonDisp(voom.dat) %>%
+    #                 estimateTagwiseDisp()
+    # fit.edgeR <- glmFit(edgeR.dat, design=X)
+    
     df <- ldply(2:5, function(p){
-      ldply(c(.25,.5,1), function(th){
+      ldply(c(.25,.5,.75), function(th){
         truth <- sim$truth$beta[,p]>th
         
         contr <- rep(0,5)
@@ -31,22 +44,29 @@ roc.df <- function(grp){
                                 TPR = cumsum(truth[id.deseq])/sum(truth),
                                 FPR = cumsum(1-truth[id.deseq])/sum(1-truth))
         
-        # deseq2_fit <- lmFit(sim$y, design = X)
-        # limma_fit <- eBayes(limma_fit)
-        # tt <- topTreat(fit = limma_fit, coef = p, lfc = th, number=10000)
-        # tt$g <- row.names(tt)
-        # tt <- filter(tt, logFC>0)
-        # id.limma <- as.numeric(tt$g)
+        #ROC for voom
+        voom.top <- topTreat(fit = voom.fit, coef = p, lfc = th, number=10000)
+        voom.top$g <- row.names(voom.top)
+        voom.top <- filter(voom.top, logFC>0)
+        id.voom <- as.numeric(voom.top$g)
+        roc.voom <- data.frame(type="voom-limma",
+                                TPR = cumsum(truth[id.voom])/sum(truth),
+                                FPR = cumsum(1-truth[id.voom])/sum(1-truth))
         
+        # #ROC for edgeR
+        # edgeR.tests <- glmLRT(glmfit = fit.edgeR, coef = p)
+        # edgeR.topG <- topTags(edgeR.tests, n = 10000, )[[1]]
+        # edgeR.topG <- edgeR.topG[which(edgeR.topG$logFC>0),]
+        # edgeR.topG <- as.numeric(row.names(edgeR.topG))
         
         #ROC for BNP fit
         p.bnp <- apply(mcmc$samples$beta[p,,],2,function(g){mean(g>th)})
         id.bnp <- order(p.bnp, decreasing=TRUE)
-        roc.bnp <- data.frame(type="bnp",
+        roc.bnp <- data.frame(type="BNP",
                               TPR=cumsum((truth)[id.bnp])/sum(truth),
                               FPR = cumsum(1-truth[id.bnp])/sum(1-truth))
         
-        data.frame(sim=i, threshold=th, p=p, rbind(roc.bnp, roc.deseq)) %>% filter(FPR<.1)
+        data.frame(sim=i, threshold=th, p=p, rbind(roc.bnp, roc.deseq, roc.voom)) %>% filter(FPR<.1)
       })
     })
     df
@@ -67,10 +87,14 @@ library(ggplot2)
 consolidated <- rbind(out1,out2,out3) %>%
   dplyr::group_by(sim, threshold, p, type, FPR) %>%
   dplyr::summarize(TPR = max(TPR)) %>%
-  dplyr::mutate(id = paste(type,"_",sim,sep="")) %>%
-  dplyr::filter(FPR<.05)
+  dplyr::mutate(id = paste(type,"_",sim,sep="")) #%>%
+#  dplyr::filter(FPR<.05)
 
-  consolidated %>%
+  consolidated %>% filter(type != "voom-limma") %>%
   # ddply(.(threshold,p,type,FPR), summarise, TPR=mean(TPR)) %>%
-  ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + geom_line(alpha=.5) + 
-    facet_grid(threshold~p, scales = "free")+theme_bw()
+  ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + 
+    geom_line(alpha=.5) + 
+    facet_grid(threshold~p, scales = "free")+theme_bw() +
+    scale_y_continuous(trans="logit", breaks=c(.05,.25, .5, .75, .9, .95, .99))
+
+ggsave("../../../figures_tables/roc-ss2.pdf",width=7,height=10)
