@@ -3,9 +3,13 @@
 \section{Introduction}
 Profiling gene expression is common problem in modern biology. It is also a classic $n \ll p$ example, inspiring statistical advances in multiple testing. Because the presence of a meaningful biological effect fits awkwardly into the NHST framework, arguably most questions of interest are better addressed through estimation \citet{deseq2014}. This is the approach that we pursue here.
 
-Current estimation methodologies can be understood as improving upon a ``straight" estimator by modeling gene-specific model parameters to borrow information across genes. \textit{Insert analogy to Stein's estimator}.
+% Current estimation methodologies can be understood as improving upon a ``straight" estimator by modeling gene-specific model parameters to borrow information across genes. \textit{Insert analogy to Stein's estimator}.
 
-Because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters. Herein lies dragons... In fact, given the large number of genes, G, the parameters of this distribution, if it should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. The impact of the hierarchical modeling approach is to ``regularize" inference for gene-specific parameters by shrinking the posterior distribution of these parameters away from the tails of the hierarchical distribution. Because of its essential role, the shape of the tail, vis a vis the choice of the hierarchical model, should be considered.
+Because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely.
+% The advantages of such hierarchical models have been shown to work well in practice, regardless of whether the distributional form of the random effects restrict should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. 
+A benefit of hierarchical modeling is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Regularization through the use of `shrinkage priors', or equivalent methods, has proven to be a useful tool even when the distributional form is misspecified.
+
+Because of its essential role, the shape of the tail, vis a vis the choice of the hierarchical model, should be considered. We showed that the choice affected the number of genes called as well as which ones.
 
 \citet*{lithio} considered reparameterizing the linear predictors to minimize the correlations of the gene-specific effects, in part to motivate the use of independent prior distributions. They find that the parameterization has a significant impact on the performance of the model. We hope avoid such sensitivities through the use of a nonparametric prior on these parameters.
 
@@ -37,10 +41,12 @@ $$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
 
 
 \section{Bayesian nonparametric model}
+When the model assumptions on $\mathcal{P}$ restrict the posterior for $\mathcal{P}$ to a set that cannot realistically represent $\mathcal{P}$, this limits the efficiency of the hierarchical model. To illustrate, suppose we observe $y_{gn},\; g=1,\ldots,100,\;n=1,\ldots 1$, and we can reasonably assume that $y_{gn}|\mu_g \ind \op{N}(\mu_g,\sigma^2)$, i.e. the data are conditionally normal, with a constant error variance. Suppose we 
+
 \label{sec:model}
-Let $Y_{gi}$ represent the observed expression (possibly after transformation) for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. We will use the upper case letters $G$ and $N$, to denote the number of genes and samples, respectively. In addition, we accommodate possible observation-level weights, $w_{gn}$. For the observed data, we assume the data model
+Let $y_{gn}$ represent the observed expression (possibly after transformation) for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. We will use the upper case letters $G$ and $N$, to denote the number of genes and samples, respectively. To accommodate observation-level weights, $w_{gn}$, which provide a correction for a global mean-variance relationship in the data. For the observed data, we assume the data model
 \begin{equation}
-Y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right).
+y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right).
 \end{equation}
 Next, we propose to model jointly
 
@@ -91,7 +97,7 @@ $\nu_k$ representing a proportion of the total probability remaining after $k-1$
 This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$. 
 
 \section{Simulation study 1}
-To investigate the performance of our method, we simulated log-expression data as follows:
+Since the proposed BNP method uses voom weights, we did a simulation study to compare the our method to the voom-limma method for RNA-seq data. The voom-limma method fits a linear model to the data under the same transformation conditional on the same voom quality weights, but proceeds by fitting each gene independently. Thus, a comparison of the estimates obtained under BNP model to the voom-limma estimates will show the result of borrowing information across genes via the Dirichlet process prior on $\mathcal{P}$.
 
 \paragraph{Construction of simulated data:}
 \begin{enumerate}
@@ -99,27 +105,22 @@ To investigate the performance of our method, we simulated log-expression data a
 
 \item Sample $(\beta_g,\sigma^2_g)$ from $\mathcal{P}^{(s)}$
 
-\item Sample $y_{g,rep} \sim N(X\beta_g,\sigma^2_g)$
+\item Sample $y_{g} \sim N(X\beta_g,\sigma^2_g I)$
 \end{enumerate}
 Produce 6-10 such data sets.\\
 
+The authors of \texttt{limma} provide multiple methods for calling genes. The default uses what they call a ``moderated t-test" which uses an empirical Bayes method to shrink estimates of $\sigma_g$ toward a common value. Software provided in the \texttt{limma} package allows for ranking genes based on tests that $\beta_{gl}$ exceeds a threshold, i.e. $H_{gl}:\beta_{gl}>t$. We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites Figure \ref{roc-ss1} shows receiver operator characteristic curves for the ten simulated data sets for each component of $\beta$ (excluding the intercept) and for a range of thresholds. In our simulations the BNP method outperforms \texttt{limma} on average. The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin. This suggests that our method, by ``learning" the underlying distribution of $\beta$, is more accurate at detecting effects of practical significance.
 
-
-
-\paragraph{Analysis}
-
-Run Gibbs sampler for each data set:
-\begin{enumerate}
-\item look at coverage of posterior credible intervals for gene-specific parameters
-
-\item look at calibration of posterior probabilities for proposition(s) of interest
-
-\item compare MSE, coverage to voom-limma
-
-\end{enumerate}
+\begin{figure}
+\includegraphics[width=.9\textwidth]{roc-ss1}
+\label{roc-ss1}
+\end{figure}
 
 \section{Simulation study 2}
-To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data as follows:
+Much of the recent methods proposed for the analysis of RNA-seq data are based on an assumption that repeated sequencing of the same sample would produce Poisson distributed counts. For example, \cite{mccarthy} motivates the negative binomial model by showing that it has the right mean-variance relationship given the the above assumption and an assumption that the coefficient of variation is for constant within a gene. The favored approach is a negative binomial generalized linear model with log link function.
+
+To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts were exponentiated and rounded to obtain the simulated counts.
+
 Simulation of counts:
 To generate the simulated count data, we follow steps 1 and 2 of simulation study 1, and modify step 3: here, we bootstrap sample $W_{g,rep}$ from $W_g$ and simulate the pseudo-counts by
 $$y^*_{g,rep} \sim N(X\beta_g,\sigma^2_gW_{g,rep}^{-1}).$$
@@ -133,7 +134,7 @@ Generally: Generate count data, truth estimated from model, and compare voom pip
 Outputs: ROC curves, difference histograms
 
 \section{Analysis of Paschold data}
-
+To fit the Paschold data, we ran 4 chains, each for 40,000 iterations after 30,000 iterations of warmup. The samples were thinned by a factor of 40, for a total of 4,000 thinned post-warmup draws for each gene-specific parameter and $\alpha$. 
 
 
 
