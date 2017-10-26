@@ -5,7 +5,7 @@ Profiling gene expression is common problem in modern biology. It is also a clas
 
 % Current estimation methodologies can be understood as improving upon a ``straight" estimator by modeling gene-specific model parameters to borrow information across genes. \textit{Insert analogy to Stein's estimator}.
 
-Because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely.
+Because the data is expensive to collect, studies typically have fairly small sample sizes ($N \approx 10$). However, because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely.
 % The advantages of such hierarchical models have been shown to work well in practice, regardless of whether the distributional form of the random effects restrict should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. 
 A benefit of hierarchical modeling is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Regularization through the use of `shrinkage priors', or equivalent methods, has proven to be a useful tool even when the distributional form is misspecified.
 
@@ -18,6 +18,8 @@ In \citet{voom}, the authors proposed using a nonparametric estimate of the mean
 \citet{liu} proposed a semiparametric model for differential expression. In their model, a gamma mixture of Poisson was used and information was borrowed across genes only for the log-fold-change parameter, which was given a Dirichlet process prior.
 
 In the present article, we propose a Bayesian nonparametric model which extends the approach taken in \citet{liu} by modeling the joint distribution of all gene-specific parameters with a Dirichlet process. The goal of this work is to provide a method that increases the amount of information being borrowed across genes and is insensitive to the choice of parameterization.
+
+\citet{landau-compute} implemented a Gibbs sampler for a parametric Bayesian hierarchical model for RNA-seq data using a graphics processing unit (GPU) to accelerate computation. Their work helped to inspired this Bayesian nonparametric approach. 
 
 
 \section{RNA-seq gene expression data}
@@ -109,7 +111,7 @@ Since the proposed BNP method uses voom weights, we did a simulation study to co
 \end{enumerate}
 Produce 6-10 such data sets.\\
 
-The authors of \texttt{limma} provide multiple methods for calling genes. The default uses what they call a ``moderated t-test" which uses an empirical Bayes method to shrink estimates of $\sigma_g$ toward a common value. Software provided in the \texttt{limma} package allows for ranking genes based on tests that $\beta_{gl}$ exceeds a threshold, i.e. $H_{gl}:\beta_{gl}>t$. We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites Figure \ref{roc-ss1} shows receiver operator characteristic curves for the ten simulated data sets for each component of $\beta$ (excluding the intercept) and for a range of thresholds. In our simulations the BNP method outperforms \texttt{limma} on average. The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin. This suggests that our method, by ``learning" the underlying distribution of $\beta$, is more accurate at detecting effects of practical significance.
+A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. The default uses what they call a ``moderated t-test" which uses an empirical Bayes method to shrink estimates of $\sigma_g$ toward a common value. Software provided in the \texttt{limma} package allows for ranking genes based on tests that $\beta_{gl}$ exceeds a threshold, i.e. $H_{gl}:\beta_{gl}>t$. We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites Figure \ref{roc-ss1} shows receiver operator characteristic curves for the ten simulated data sets for each component of $\beta$ (excluding the intercept) and for a range of thresholds. In our simulations the BNP method outperforms \texttt{limma} on average. The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin. This suggests that our method, by ``learning" the underlying distribution of $\beta$, increases the ability to detect effects of practical significance.
 
 \begin{figure}
 \includegraphics[width=.9\textwidth]{roc-ss1}
@@ -120,6 +122,27 @@ The authors of \texttt{limma} provide multiple methods for calling genes. The de
 Much of the recent methods proposed for the analysis of RNA-seq data are based on an assumption that repeated sequencing of the same sample would produce Poisson distributed counts. For example, \cite{mccarthy} motivates the negative binomial model by showing that it has the right mean-variance relationship given the the above assumption and an assumption that the coefficient of variation is for constant within a gene. The favored approach is a negative binomial generalized linear model with log link function.
 
 To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts were exponentiated and rounded to obtain the simulated counts.
+
+\begin{enumerate}
+\item Sample 10,000 indices, $g$, from $\{1,2,\ldots,36,000\}$ without replacement.
+\item Set $\beta_g:= \hat_{\beta}_{voom,~g},\; \sigma^2_g:= \hat{\sigma}^2_{voom,~g}$
+\item Sample $y_g \sim \op{N}(X\beta_g, \sigma^2_g I)$
+\item 
+\end{enumerate}
+
+% Mean squared prediction error
+For each simulation we computed the mean squared prediction error (MSPE) corresponding to each element of $\beta_g$, $\frac{1}{G}\sum_{g=1}^G (\hat{\beta}_g-\beta_g)^2$ for both methods. The results, shown in Figure \ref{ss2-mspe}, show that estimation with BNP is more accurate with respect to MSPE than DESeq2.
+
+\begin{figure}
+\includegraphics[width=.8\textwidth]{ss2-mspe}
+\begin{minipage}{.8\textwidth}
+\caption{\small Comparing the accuracy of estimation for BNP and DESeq2. Results show the average squared prediction error for 10 simulated data sets, grouped by function.}
+\end{minipage}
+\label{ss2-mspe}
+\end{figure}
+% Ranking accuracy (ROCs)
+
+
 
 Simulation of counts:
 To generate the simulated count data, we follow steps 1 and 2 of simulation study 1, and modify step 3: here, we bootstrap sample $W_{g,rep}$ from $W_g$ and simulate the pseudo-counts by
