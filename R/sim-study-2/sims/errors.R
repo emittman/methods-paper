@@ -17,11 +17,13 @@ error.df <- function(grp){
     sim <- readRDS(paste("sim_",i,sep=""))
     mcmc <- readRDS(paste("../saved_mcmc/mcmc_voom_sim_",i,sep=""))
 
+    #Get BNP fit
     est.df.bnp <- data.frame(t(mcmc$summaries$means_betas))
     names(est.df.bnp) <- c("intercept","parent_hd","hybrid","hybrid_hd","flow_cell")
     est.df.bnp$g <- 1:nrow(est.df.bnp)
     bnp.long <- gather(est.df.bnp, key=par, value=BNP, -g)
     
+    #Fit DESeq2
     deseq.dat <- DESeqDataSetFromMatrix(sim$y, colData = as.data.frame(X[,2:5]),
                                         design = ~ parent_hd+hybrid+hybrid_hd+flow_cell)
     
@@ -40,16 +42,26 @@ error.df <- function(grp){
     est.df.voom$g <- 1:nrow(est.df.bnp)
     voom.long <- gather(est.df.voom, key=par, value=voom, -g)
     
+    #Fit edgeR
+    edgeR.dat <- estimateCommonDisp(voom.dat) %>%
+      estimateTagwiseDisp()
+    fit.edgeR <- glmFit(edgeR.dat, design=X)
+    est.df.edgeR <- data.frame(coef(fit.edgeR))
+    names(est.df.edgeR)[1] <- "intercept"
+    est.df.edgeR$g <- 1:nrow(est.df.bnp)
+    edgeR.long <- gather(est.df.edgeR, key=par, value=edgeR, -g)
+    
     truth.df <- data.frame(sim$truth$beta)
     names(truth.df)[1] <- "intercept"
     truth.df$g <- 1:nrow(truth.df)
     truth.long <- gather(truth.df, key=par, value=truth, -g)
     
-    merged.bnp <- merge(bnp.long, truth.long, by=c("g","par"))
-    merged.bnp <- merge(merged.bnp, voom.long, by=c("g","par"))
-    merged.all <- merge(merged.bnp, ds2.long, by=c("g","par"))
+    merged.all <- merge(bnp.long, truth.long, by=c("g","par"))
+    merged.all <- merge(merged.all, voom.long, by=c("g","par"))
+    merged.all <- merge(merged.all, ds2.long, by=c("g","par"))
+    merged.all <- merge(merged.all, edgeR.long, by=c("g","par"))
     
-    means.df <- gather(merged.all, key=type, value=est, BNP, DESeq2, voom)
+    means.df <- gather(merged.all, key=type, value=est, BNP, DESeq2, voom, edgeR)
     
     out <- means.df %>% 
       dplyr::group_by(g, par, type) %>%
@@ -88,17 +100,20 @@ combined <- rbind(out1,out2,out3) %>%
   dplyr::mutate(par = factor(par, levels=c("intercept","parent_hd","hybrid","hybrid_hd","flow_cell"))) %>%
   gather(key=error_type, value=value, MSPE, MAPE)
   
+combined$type <- factor(combined$type, levels=c("BNP","DESeq2","edgeR","voom"),
+                        labels=c("BNP","DESeq2","edgeR","voom-limma"))
+
 combined %>%
   dplyr::filter(par != "intercept", error_type=="MAPE") %>%
-  ggplot(aes(factor(type), y=value)) + 
-  geom_boxplot() + 
+  ggplot(aes(type, y=value, color=type)) + 
+  geom_boxplot(aes(fill=type), alpha=.5) + 
   facet_wrap(~par, scales="free")+
   theme_bw(base_size=14) + ylab("") + xlab("") + ggtitle("Mean Absolute Prediction Error")
 
 combined %>%
-  dplyr::filter(par != "intercept", error_type=="MSPE") %>%
-  ggplot(aes(factor(type), y=value)) + 
-  geom_boxplot() + 
+  dplyr::filter(par != "intercept", error_type=="MSPE", type != "voom-limma") %>%
+  ggplot(aes(type, y=value, color=type)) + 
+  geom_boxplot(aes(fill=type), alpha=.5) + 
   facet_wrap(~par, scales="free")+
   theme_bw(base_size=14) + ylab("") + xlab("") + ggtitle("Mean Squared Prediction Error")
 

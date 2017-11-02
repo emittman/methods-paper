@@ -5,30 +5,40 @@ Profiling gene expression is common problem in modern biology. It is also a clas
 
 % Current estimation methodologies can be understood as improving upon a ``straight" estimator by modeling gene-specific model parameters to borrow information across genes. \textit{Insert analogy to Stein's estimator}.
 
-Because the data is expensive to collect, studies typically have fairly small sample sizes ($N \approx 10$). However, because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely.
+Because the data is expensive to collect, studies typically have fairly small sample sizes ($N \approx 10$). However, because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely. We use the term ``hierarchical model" to refer to models where some or all of the parameters involved in the data generation model are themselves modeled as random variables.
 % The advantages of such hierarchical models have been shown to work well in practice, regardless of whether the distributional form of the random effects restrict should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. 
-A benefit of hierarchical modeling is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Regularization through the use of `shrinkage priors', or equivalent methods, has proven to be a useful tool even when the distributional form is misspecified.
+A rationale for hierarchical modeling in gene expression is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Largely for computational reasons, empirical Bayes methods have been preferred to fully Bayesian methods. One argument for their use is that when $G$ is large, $\mathcal{P}$ should be have low variance in the posterior, so that inference based on an estimate of $\mathcal{P}$ should be quite similar to a fully Bayesian analysis which integrates over the uncertainty in $\mathcal{P}$. The findings of Landau (2016) support this claim.
 
-Because of its essential role, the shape of the tail, vis a vis the choice of the hierarchical model, should be considered. We showed that the choice affected the number of genes called as well as which ones.
+Whether the method used is empirical Bayes or fully Bayesian, the use of hierarchical models in this area has led to critical improvements in estimation and testing. \citet{niemi} observed that the choice of parametric family can impact both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results; in contrast, misspecification of the distribution will limit both the accuracy and precision that can be obtained in estimation of the parameters.
+%The theory which supports these arguments assumes that the complexity of $\mathcal{P}$ can be described by a fixed number of parameters.
+%Whether or not a suitable, parsimonious parameteric model can be found for the gene-specific parameters in gene expression data is a question that 
+% Indeed, many `shrinkage priors', or equivalent methods, has proven to be a useful tool even when the distributional form is misspecified.
 
-\citet*{lithio} considered reparameterizing the linear predictors to minimize the correlations of the gene-specific effects, in part to motivate the use of independent prior distributions. They find that the parameterization has a significant impact on the performance of the model. We hope avoid such sensitivities through the use of a nonparametric prior on these parameters.
+% Because of its essential role, the shape of the tail, vis a vis the choice of the hierarchical model, should be considered. We showed that the choice affected the number of genes called as well as which ones.
 
-In \citet{voom}, the authors proposed using a nonparametric estimate of the mean variance relationship using the straight estimates as data to produce precision estimates for each datum, thereby borrowing information about the measure of uncertainty within a gene. In Niemi et al, 2016, the authors used an empirical Bayes approach that considered the marginal empirical distributions of the straight estimators to inform the selection of prior distributions of the regression coefficients.
+Several interesting approaches to improving the hierarchical model have been considered. \citet*{lithio} considered reparameterizing the linear predictors to minimize the correlations of the gene-specific effects, in part to motivate the use of independent prior distributions. They find that the parameterization has a significant impact on the performance of the model. 
+%We hope avoid such sensitivities by using nonparametric prior distributions for these parameters.
+\citet{voom} proposed a method which unlocks linear modeling of RNA-seq data by estimating precision weights for each RNA-seq count. This is accomplished by estimating the mean variance relationship parametrically by fitting a loess curve using independent estimates by gene of the average log expression and fourth root of the error variance. This between-gene information is then applied within genes via precision weights. \citet{liu} proposed a semiparametric model for differential expression. In their model, a gamma mixture of Poisson was used and information was borrowed across genes only for the log-fold-change parameter, which was given a Dirichlet process prior.
 
-\citet{liu} proposed a semiparametric model for differential expression. In their model, a gamma mixture of Poisson was used and information was borrowed across genes only for the log-fold-change parameter, which was given a Dirichlet process prior.
-
-In the present article, we propose a Bayesian nonparametric model which extends the approach taken in \citet{liu} by modeling the joint distribution of all gene-specific parameters with a Dirichlet process. The goal of this work is to provide a method that increases the amount of information being borrowed across genes and is insensitive to the choice of parameterization.
-
-\citet{landau-compute} implemented a Gibbs sampler for a parametric Bayesian hierarchical model for RNA-seq data using a graphics processing unit (GPU) to accelerate computation. Their work helped to inspired this Bayesian nonparametric approach. 
+In the present article, we propose a Bayesian nonparametric model which extends the approach taken in \citet{liu} by modeling the joint distribution of all gene-specific parameters with a Dirichlet process. We assume a normal data model, using voom weights to accomodate the mean-variance relationship of RNA-seq count data. The goal of this work is to provide a method that flexibly models the gene-specific parameters, learning their distribution automatically. For computation of the posterior, we exploit conditional independence within the posterior distribution to parallelize the computation on GPUs, following the outline presented in \citet{suchard}.
+% \citet{landau-compute} implemented a Gibbs sampler for a parametric Bayesian hierarchical model for RNA-seq data using a graphics processing unit (GPU) to accelerate computation. Their work helped to inspired this Bayesian nonparametric approach. 
 
 
 \section{RNA-seq gene expression data}
 \label{sec:data}
 The starting point for our analyses is an array of RNA-seq total reads for $N$ samples, aligned to $G$ genes. For details on preprocessing, see (Nettleton and Datta?) 
 
+\subsection{Maize data of Paschold et al.}
+THIS IS PLAGARISM AT THIS POINT:
+We use as a motivating example a maize data set \citep{paschold2012complementation} of RNA-seq gene expression in parental lines B73 and Mo17 and the reciprocal hybrid genotypes (B73$\times$Mo17, Mo17$\times$B73) with a total of 39,656 genes. Each variety had four biological replicates measured with Illumina methodology and equipment. Reads were mapped to the whole reference genome using the short reads aligner, NOVOALIGN. For more specifics, please see \cite{paschold2012complementation}.
+
+Heterosis exists when the expected value of a hybrid phenotype differs from the average of the expected phenotypic values of the hybrid's parents.  The most interesting and useful form of heterosis, known as hybrid vigor, occurs when hybrid progeny display a mean phenotype that is superior to  both parental phenotypic means.  This heterosis phenomenon was scientifically documented in plants by \cite{darwin1876effects} and has long been used to improve agricultural production. One classic example involves hybrid maize offspring that are taller, faster to mature, and yield considerably more grain than their inbred parents \citep{hallauer1981quantitative, hallauer2010quantitative}.
+
+There is interest in using gene expression data to help identify genes that drive heterosis; i.e. where the mean gene expression of the hybrid is high relative to its parents.
+
 \subsection{Normalization and weighting}
 \paragraph{Normalization}
-
+From uncontrollable aspects of the sequencing procedure, it can happen that some samples with have larger or smaller read counts on average relative to other libraries. This introduces biases require correction, or they will negatively impact subsequent analyses. These corrections are typically made at the time of analysis by introducing a sample specific offset. Different methods for normalization have been proposed. \citet{robinson2010} proposed a method called trimmed mean of M-values (TMM) to correct between-sample biases by compare observed log-fold-change values between samples for all genes. Under the assumption that most genes are not differentially expressed, they use a trimmed mean to robustly estimate the bias. When there are more than two samples, the same methodology is extended by using one sample as a reference. For details, see \citet{robinson2010}.
 
 \paragraph{voom}
 Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{V}(C|\mu)=\mu, \mu=\op{E}(C)$), if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads overdispersion of the counts. Often, the negative binomial distribution is used because its variance is quadratic with the mean ($\op{V}(C|\mu)=\mu+\phi\mu^2$). Because gene expression is usually measured on the log scale, through an application of the delta method, we can re-express this approximately in terms of the log-count ($\op{V}(\log C|\mu) \approx \frac{1}{\mu} + \phi$. While this assumption may be adequate for genes with similar expression levels, empirical studies suggest that the overdispersion parameter, $\phi$, tends to be larger for genes with lower expression than those with higher expression.
@@ -39,14 +49,47 @@ Rather than assuming the mean-variance relationship of the negative binomial and
 $$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
 
 
-\subsection{Maize data of Paschold et al.}
-
 
 \section{Bayesian nonparametric model}
-When the model assumptions on $\mathcal{P}$ restrict the posterior for $\mathcal{P}$ to a set that cannot realistically represent $\mathcal{P}$, this limits the efficiency of the hierarchical model. To illustrate, suppose we observe $y_{gn},\; g=1,\ldots,100,\;n=1,\ldots 1$, and we can reasonably assume that $y_{gn}|\mu_g \ind \op{N}(\mu_g,\sigma^2)$, i.e. the data are conditionally normal, with a constant error variance. Suppose we 
+The advantage of hierarchical modeling generally is that that by assumming a distribution, $\mathcal{P}$, on some parameters $\theta_g$ and by allowing the parameters of $\mathcal{P}$ to be learned from the data, we can borrow information across groups to reduce our uncertainty about $\theta_g$. An implication of the misspecification of the distribution on the parameters can be that the utility of the hierarchical model is reduced; the information that the model is capable of borrowing is diminished.
+
+\subsection{Illustration}
+\label{subsec:illustration}
+When the model assumptions on $\mathcal{P}$ restrict the posterior for $\mathcal{P}$ to a set that cannot realistically represent $\mathcal{P}$, this limits the efficiency of the hierarchical model. To illustrate, suppose we observe $y_{gn},\; g=1,\ldots,200,\;n=1,2,3$, and we are interested in hypotheses concerning $\op{E}(y_{gn})=\mu_g$. Suppose further that we can reasonably assume that $y_{gn}|\mu_g \ind \op{N}(\mu_g,\sigma^2)$, i.e. the data are conditionally normal, with a constant error variance. In this example we let $\mu_g$ be independent draws from a trivariate mixture of normals, $\mu_g \sim 1/3\op{N}(-4,1)+1/3\op{N}(0,1)+1/3\op{N}(4,1)$. This model was used to simulate a set of observations letting $\sigma^2=2$. A histogram of the the sample means, $\hat{\mu}_g$ is shown in the top panel of Figure~\ref{predictive}. Next, we fitted three Bayesian models to the data. First, $\mu_g \ind \mathcal{P}=\op{N}(\eta, \tau^2)$, with weakly informative priors on $\eta$ and $\tau^2$. Second, a mixture model with the correct number of components, $\mu_g \sim \mathcal{P}=\pi_1\op{N}(\eta_1,\tau^2)+\pi_2\op{N}(\eta_2,\tau^2)+\pi_3\op{N}(\eta_3,\tau^2)$, also with weakly informative priors on $\eta_j$ and $\tau^2$ and a $\op{Dir}(1,1,1)$ prior on $\pi$. Lastly, a Bayesian nonparametric prior: $\mu_g \ind \mathcal{P}$ with $\mathcal{P} \sim \op{DP}\left\{\alpha \op{N}(0,5^2)\right\}$. Critically, this last model allows us to be agnostic about the modality of $\mathcal{P}$; further details are given in the next section.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.5\textwidth]{toy_ex/predictive}
+\begin{minipage}{.7\textwidth}\small%
+\caption{Top: Sample averages for simulated data of Section~\ref{subsec:illustration}. The next three rows correspond to pointwise posterior estimates and 90\% credible intervals for the underlying density corresponding to the random distribution, $\mathcal{P}$. For the BNP model, a weighted kernel density estimate employing a bandwidth of 0.1  was used for each posterior draws of $\mathcal{P}$, as the posterior draws do not have a density with respect to Lebesgue measure.}
+\end{minipage}
+\label{predictive}
+\end{figure}
+
+
+The bottom three panels of Figure \ref{predictive} show density estimates and 90\% pointwise credible intervals based on posterior samples of $\mathcal{P}|y$ for the three models. For the normal model and the ``true" model, these were computed by taking quantiles of the sampled density evaluated on a grid. For the Bayesian nonparameteric model, the sample density was estimated using a weighted kernel with bandwidth of 0.1 because samples of $\mathcal{P}$ do not have a density with respect to Lebesgue measure. The true generating model for the $\mu_g$ is shown in red. The posterior for the density of $\mu_g$ under the normal model has less uncertainty but is concentrated around an incorrect answer because of its inflexibility. Both the "true" and the BNP models contain much of the true density within the pointwise uncertainty intervals. The BNP model shows a great deal more posterior uncertainty because it does not assume a parametric model for $\mu_g$. Despite the increased uncertainty about $\mathcal{P}$, posterior estimation under the BNP model is nearly as good as under the true model; the left panel of Figure~\ref{precision} shows the lengths of the posterior 95\% credible intervals for the $\mu_g$ sorted by their length for the three models; the dotted lines represent correspond to a non-hierarchical analysis (indepedent, uniform priors on $\mu_g$) with $\sigma^2$ known ($+/- 4/\sqrt{3}$). For this data set, we see that both the nonparametric and true models have less posterior uncertainty than the normal model on average, while all three hierarchical models have substantially less uncertainty than a non-hierarchical model. The right panel shows histograms of the mean squared error, $\int (\mu_g - \mu_{g0})^2 p(\mu_g|y) d\mu_g$, computed for each $g$ under the three models, where $\mu_{g0}$ is the true value. Again, we see that estimation is substantially improved when $\mathcal{P}$ is modelled appropriately.
+
+% \begin{figure}[h!]
+% \includegraphics[width=.5\textwidth]{toy_ex/post-pred}
+% \caption{Pointwise density estimates for three posterior models based on simulated data of Subsection~\ref{subsec:illustration}}
+% \label{ex-predictive}
+% \end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=.9\textwidth]{toy_ex/precision}
+\begin{minipage}{.7\textwidth}\small%
+\caption{Left: Histograms of the mean squared error based on posteriors for these models. Right: The widths of the 95\% posterior credible intervals for $\mu_g$ under the three hierarchical models, arranged by the width for the true model. Intervals which failed to cover the true value are colored red. The dashed lines correspond approximately to credible intervals with independent uniform priors on $\mu_g$.}
+\end{minipage}
+\label{precision}
+\end{figure}
+
+
+\subsection{BNP model for RNA-seq data}
+
 
 \label{sec:model}
-Let $y_{gn}$ represent the observed expression (possibly after transformation) for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. We will use the upper case letters $G$ and $N$, to denote the number of genes and samples, respectively. To accommodate observation-level weights, $w_{gn}$, which provide a correction for a global mean-variance relationship in the data. For the observed data, we assume the data model
+Let $y_{gn}$ represent the normalized log-cpm for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. We will use the upper case letters $G$ and $N$, to denote the number of genes and samples, respectively. Also let $w_{gn}$ be the precision weight for $y_{gn}$. For the observed data, we assume the normal model
 \begin{equation}
 y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right).
 \end{equation}
@@ -96,24 +139,28 @@ $\nu_k$ representing a proportion of the total probability remaining after $k-1$
 \nu_k \ind \op{Beta}(1, \alpha).
 \end{equation}
 
-This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$. 
+This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$.
+
+\subsection{Priors}
+The base measure, $Q$, represents a prior guess at $\mathcal{P}$. The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we set $Q$ by matching the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. The prior distribution for $\alpha$ was chosen by considering the implied expected number of clusters. Although we it is difficult to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, we cannot deal with more than about 6000 clusters. We select the prior $\alpha \sim \op{Ga}(3,3/G^{0.5})$, which implies the expected number of clusters is likely between $G^{0.5}$ and $G^{0.75}$.
+%For $\beta_gl$; $l=2,3,4,5$, these were obtained using the \texttt{estimateBetaPriorVar} from the \texttt{DESeq2} package using the ``quantile" method. For $\beta_g1$ and $\sigma^2_g$, a similar m
 
 \section{Simulation study 1}
 Since the proposed BNP method uses voom weights, we did a simulation study to compare the our method to the voom-limma method for RNA-seq data. The voom-limma method fits a linear model to the data under the same transformation conditional on the same voom quality weights, but proceeds by fitting each gene independently. Thus, a comparison of the estimates obtained under BNP model to the voom-limma estimates will show the result of borrowing information across genes via the Dirichlet process prior on $\mathcal{P}$.
 
 \paragraph{Construction of simulated data:}
 \begin{enumerate}
-\item Select random draw $\mathcal{P}^{(s)}$ from posterior distribution of $\mathcal{P}$
+\item Select random draw of $\mathcal{P}$, $\mathcal{P}^{(s)}$, obtained from the posterior distribution given the entire Paschold data set
 
-\item Sample $(\beta_g,\sigma^2_g)$ from $\mathcal{P}^{(s)}$
+\item Sample $(\beta_g,\sigma^2_g)$ independently from $\mathcal{P}^{(s)}$, $g=1,\ldots,10000$ 
 
 \item Sample $y_{g} \sim N(X\beta_g,\sigma^2_g I)$
 \end{enumerate}
-Produce 6-10 such data sets.\\
+Produce 6-10 such data sets\\
 
 A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. The default uses what they call a ``moderated t-test" which uses an empirical Bayes method to shrink estimates of $\sigma_g$ toward a common value. Software provided in the \texttt{limma} package allows for ranking genes based on tests that $\beta_{gl}$ exceeds a threshold, i.e. $H_{gl}:\beta_{gl}>t$. We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites Figure \ref{roc-ss1} shows receiver operator characteristic curves for the ten simulated data sets for each component of $\beta$ (excluding the intercept) and for a range of thresholds. In our simulations the BNP method outperforms \texttt{limma} on average. The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin. This suggests that our method, by ``learning" the underlying distribution of $\beta$, increases the ability to detect effects of practical significance.
 
-\begin{figure}
+\begin{figure}[h!]
 \includegraphics[width=.9\textwidth]{roc-ss1}
 \label{roc-ss1}
 \end{figure}
@@ -121,19 +168,19 @@ A common goal of gene expression profiling is to produce a ranked list of 'calle
 \section{Simulation study 2}
 Much of the recent methods proposed for the analysis of RNA-seq data are based on an assumption that repeated sequencing of the same sample would produce Poisson distributed counts. For example, \cite{mccarthy} motivates the negative binomial model by showing that it has the right mean-variance relationship given the the above assumption and an assumption that the coefficient of variation is for constant within a gene. The favored approach is a negative binomial generalized linear model with log link function.
 
-To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts were exponentiated and rounded to obtain the simulated counts.
-
+To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts ($y_{gn}$) were exponentiated and rounded to obtain the simulated counts, $\tilde{y}_{gn}$. For each simulated data set, we analyzed the data using our BNP method and also with two popular count-based methods, DESeq2 and edgeR. For purposes of comparison, we considered accuracy of point estimation via mean squared prediction error and accuracy in identifying interesting genes using ROC curve.
+% \begin{minipage}{.8\textwidth}
 \begin{enumerate}
 \item Sample 10,000 indices, $g$, from $\{1,2,\ldots,36,000\}$ without replacement.
-\item Set $\beta_g:= \hat_{\beta}_{voom,~g},\; \sigma^2_g:= \hat{\sigma}^2_{voom,~g}$
-\item Sample $y_g \sim \op{N}(X\beta_g, \sigma^2_g I)$
-\item 
+\item Set $\beta_g:= \hat{\beta}_{voom,~g},\; \sigma^2_g:= \hat{\sigma}^2_{voom,~g}$
+\item Sample $y_{gn} \sim \op{N}(x{gn}^\top\beta_g, \sigma^2_g/w_{gn})$
+\item Set $\tilde{y}_{gn} = \op{Round} \left\{ 2^{y_{gn} + \log_2(10^6) - \log_2(\bar{R}_{\cdot})} \right\}$
 \end{enumerate}
-
+% \end{minipage}
 % Mean squared prediction error
 For each simulation we computed the mean squared prediction error (MSPE) corresponding to each element of $\beta_g$, $\frac{1}{G}\sum_{g=1}^G (\hat{\beta}_g-\beta_g)^2$ for both methods. The results, shown in Figure \ref{ss2-mspe}, show that estimation with BNP is more accurate with respect to MSPE than DESeq2.
 
-\begin{figure}
+\begin{figure}[h!]
 \includegraphics[width=.8\textwidth]{ss2-mspe}
 \begin{minipage}{.8\textwidth}
 \caption{\small Comparing the accuracy of estimation for BNP and DESeq2. Results show the average squared prediction error for 10 simulated data sets, grouped by function.}
@@ -158,6 +205,7 @@ Outputs: ROC curves, difference histograms
 
 \section{Analysis of Paschold data}
 To fit the Paschold data, we ran 4 chains, each for 40,000 iterations after 30,000 iterations of warmup. The samples were thinned by a factor of 40, for a total of 4,000 thinned post-warmup draws for each gene-specific parameter and $\alpha$. 
+
 
 
 

@@ -3,6 +3,8 @@ load("../../data/heterosis_design.RData")
 library(plyr)
 library(dplyr)
 library(DESeq2)
+library(limma)
+library(edgeR)
 
 grp1 <- 1:3
 grp2 <- 4:6
@@ -24,12 +26,11 @@ roc.df <- function(grp){
     voom.dat <- DGEList(sim$y) %>% calcNormFactors(method="TMM")
     voom.dat.voom <- voom(voom.dat, design = X)
     voom.fit <- lmFit(voom.dat.voom)
-    voom.fit <- eBayes(voom.fit)
     
     # #Fit edgeR
-    # edgeR.dat <- estimateCommonDisp(voom.dat) %>%
-    #                 estimateTagwiseDisp()
-    # fit.edgeR <- glmFit(edgeR.dat, design=X)
+    edgeR.dat <- estimateCommonDisp(voom.dat) %>%
+                    estimateTagwiseDisp()
+    fit.edgeR <- glmFit(edgeR.dat, design=X)
     
     df <- ldply(2:5, function(p){
       ldply(c(.25,.5,.75), function(th){
@@ -45,7 +46,8 @@ roc.df <- function(grp){
                                 FPR = cumsum(1-truth[id.deseq])/sum(1-truth))
         
         #ROC for voom
-        voom.top <- topTreat(fit = voom.fit, coef = p, lfc = th, number=10000)
+        voom.fit <- treat(fit = voom.fit, lfc = th)
+        voom.top <- topTreat(fit = voom.fit, coef = p, number=10000)
         voom.top$g <- row.names(voom.top)
         voom.top <- filter(voom.top, logFC>0)
         id.voom <- as.numeric(voom.top$g)
@@ -53,11 +55,15 @@ roc.df <- function(grp){
                                 TPR = cumsum(truth[id.voom])/sum(truth),
                                 FPR = cumsum(1-truth[id.voom])/sum(1-truth))
         
-        # #ROC for edgeR
-        # edgeR.tests <- glmLRT(glmfit = fit.edgeR, coef = p)
-        # edgeR.topG <- topTags(edgeR.tests, n = 10000, )[[1]]
-        # edgeR.topG <- edgeR.topG[which(edgeR.topG$logFC>0),]
-        # edgeR.topG <- as.numeric(row.names(edgeR.topG))
+        #ROC for edgeR
+        edgeR.tests <- glmTreat(glmfit = fit.edgeR, coef = p, lfc = th)
+        edgeR.topG <- topTags(edgeR.tests, n = 10000)[[1]]
+        edgeR.topG$g <- row.names(edgeR.topG)
+        edgeR.topG <- filter(edgeR.topG, logFC>0)
+        id.edgeR <- as.numeric(edgeR.topG$g)
+        roc.edgeR <- data.frame(type="edgeR",
+                                TPR = cumsum(truth[id.edgeR])/sum(truth),
+                                FPR = cumsum(1-truth[id.edgeR])/sum(1-truth))
         
         #ROC for BNP fit
         p.bnp <- apply(mcmc$samples$beta[p,,],2,function(g){mean(g>th)})
@@ -66,7 +72,7 @@ roc.df <- function(grp){
                               TPR=cumsum((truth)[id.bnp])/sum(truth),
                               FPR = cumsum(1-truth[id.bnp])/sum(1-truth))
         
-        data.frame(sim=i, threshold=th, p=p, rbind(roc.bnp, roc.deseq, roc.voom)) %>% filter(FPR<.1)
+        data.frame(sim=i, threshold=th, p=p, rbind(roc.bnp, roc.deseq, roc.voom, roc.edgeR)) %>% filter(FPR<.1)
       })
     })
     df
@@ -90,7 +96,7 @@ consolidated <- rbind(out1,out2,out3) %>%
   dplyr::mutate(id = paste(type,"_",sim,sep="")) #%>%
 #  dplyr::filter(FPR<.05)
 
-  consolidated %>% filter(type != "voom-limma") %>%
+  consolidated %>% #filter(type != "voom-limma") %>%
   # ddply(.(threshold,p,type,FPR), summarise, TPR=mean(TPR)) %>%
   ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + 
     geom_line(alpha=.5) + 

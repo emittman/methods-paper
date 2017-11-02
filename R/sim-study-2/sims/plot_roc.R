@@ -31,7 +31,8 @@ mean.rocs <- ldply(roc_fns, function(setting){
 str(mean.rocs)
 
 mean.rocs$p <- factor(mean.rocs$p, levels=2:5, labels=c("Parental HD", "Hybrid","Hybrid HD", "Flow Cell"))
-
-ggplot(mean.rocs, aes(FPR, TPR, color=type)) + geom_line() + 
+mean.rocs %>% filter(type != "voom-limma") %>%
+ggplot(aes(FPR, TPR, color=type)) + geom_line() + 
   geom_ribbon(aes(ymin=lower,ymax=upper,fill=type), alpha=.5)+
-  facet_grid(threshold~p) + theme_bw(base_size=14)
+  facet_grid(threshold~p) + theme_bw(base_size=14) +
+  scale_x_continuous(limits=(c(.001, .05)), breaks=c(0.0,.02,.04))
