@@ -22,14 +22,14 @@ roc.df <- function(grp){
         limma_fit <- eBayes(limma_fit)
         tt <- topTreat(fit = limma_fit, coef = p, lfc = th, number=10000)
         tt$g <- row.names(tt)
-        tt <- filter(tt, logFC>0)
+        # tt <- filter(tt, logFC>0)
         id.limma <- as.numeric(tt$g)
         roc.limma <- data.frame(type="limma",
                                 TPR = cumsum(truth[id.limma])/sum(truth),
                                 FPR = cumsum(1-truth[id.limma])/sum(1-truth))
         
         #ROC for BNP fit
-        p.bnp <- apply(mcmc$samples$beta[p,,],2,function(g){mean(g>th)})
+        p.bnp <- apply(mcmc$samples$beta[p,,],2,function(g){mean(abs(g)>th)})
         id.bnp <- order(p.bnp, decreasing=TRUE)
         roc.bnp <- data.frame(type="bnp",
                               TPR=cumsum((truth)[id.bnp])/sum(truth),
@@ -58,7 +58,32 @@ consolidated <- rbind(out1,out2,out3) %>%
   summarize(TPR = max(TPR)) %>%
   mutate(id = paste(type,"_",sim,sep=""))
 
-  consolidated %>%
+consolidated$p <- factor(consolidated$p, levels=2:5,
+                                  labels=c("parental HD", "hybrid",
+                                           "hybrid HD", "flow cell"))
+consolidated$type = factor(consolidated$type, levels=c("bnp","limma"),
+                                     labels=c("BNP", "limma"))
+ssss <- sample(1:10,1)
+p1 <- filter(consolidated,threshold<.8, threshold>0, sim==ssss) %>%#,p %in% c("parental HD","hybrid","hybrid HD")) %>%
   # ddply(.(threshold,p,type,FPR), summarise, TPR=mean(TPR)) %>%
-  ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + geom_line(alpha=.5) + 
-    facet_grid(threshold~p, scales = "free")+theme_bw()
+  ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + geom_line() + 
+    facet_grid(threshold~p, scales = "free")+theme_bw(base_size=14)+
+  theme(legend.position = c(.1,.9),
+        legend.margin = margin(-10,-10,-10,-10,unit="pt"))
+p1
+#AUC
+aucs <- arrange(consolidated, sim, threshold, p, type, FPR) %>%
+  filter(FPR < .1) %>%
+  ddply(.(sim, threshold, p, type), function(x){
+    width = diff(x$FPR)
+    height = (x$TPR[-1] + x$TPR[-length(x$TPR)])/2
+    data.frame(AUC = sum(width*height))
+  })
+p2 <- filter(aucs, threshold>0,threshold<.8)%>%#, p %in% c("parental HD","hybrid","hybrid HD")) %>%
+  ggplot(aes(x=type, y=AUC)) + geom_boxplot(aes(color=type)) +
+  geom_line(aes(group=sim), alpha=.5) + facet_grid(threshold~p) +
+  theme_bw(base_size=14)+xlab("")+theme(legend.position = "none")
+p2
+library(cowplot)
+plot_grid(p1,p2,ncol=1)
+ggsave("../../../figures_tables/ss1-roc-auc.pdf", width=6, height=10)

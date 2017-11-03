@@ -2,6 +2,37 @@ roc1 <- readRDS("../data/roc-df1.rds")
 roc2 <- readRDS("../data/roc-df2.rds")
 roc3 <- readRDS("../data/roc-df3.rds")
 
+consolidated <- rbind(roc1,roc2,roc3) %>%
+  group_by(sim, threshold, p, type, FPR) %>%
+  summarize(TPR = max(TPR)) %>%
+  mutate(id = paste(type,"_",sim,sep=""))
+
+consolidated$p <- factor(consolidated$p, levels=2:5,
+                         labels=c("parental HD", "hybrid",
+                                  "hybrid HD", "flow cell"))
+ssss <- sample(1:10,1)
+p1 <- filter(consolidated,threshold<.8, threshold>0, sim==ssss, type != "voom-limma") %>%#,p %in% c("parental HD","hybrid","hybrid HD")) %>%
+  # ddply(.(threshold,p,type,FPR), summarise, TPR=mean(TPR)) %>%
+  ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + geom_line() + 
+  facet_grid(threshold~p, scales = "free")+theme_bw(base_size=14)+
+  theme(legend.position = c(.92,.1),
+        legend.margin = margin(-10,-10,-10,-10,unit="pt"))
+aucs <- arrange(consolidated, sim, threshold, p, type, FPR) %>%
+  filter(FPR < .1, type!="voom-limma") %>%
+  ddply(.(sim, threshold, p, type), function(x){
+    width = diff(x$FPR)
+    height = (x$TPR[-1] + x$TPR[-length(x$TPR)])/2
+    data.frame(AUC = sum(width*height))
+  })
+
+p2 <- filter(aucs, threshold>0,threshold<.8)%>%#, p %in% c("parental HD","hybrid","hybrid HD")) %>%
+  ggplot(aes(x=type, y=AUC)) + geom_boxplot(aes(color=type)) +
+  geom_line(aes(group=sim), alpha=.5) + facet_grid(threshold~p) +
+  theme_bw(base_size=14)+xlab("")+theme(legend.position = "none")
+
+library(cowplot)
+plot_grid(p1,p2,ncol=1)
+ggsave("../../../figures_tables/ss2-roc-auc.pdf", width=6, height=10)
 
 rr <- dplyr::filter(roc2, threshold==.25, p==2, type=="BNP")
 
@@ -13,6 +44,8 @@ roc_fns <- rbind(roc1,roc2,roc3) %>%
       })
     })
   })
+
+
 
 grid <- 1:100*.001
 
