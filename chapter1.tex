@@ -186,14 +186,14 @@ A common goal of gene expression profiling is to produce a ranked list of 'calle
 % This suggests that our method, by ``learning" the underlying distribution of $\beta$, increases the ability to detect effects of practical significance.
 
 \begin{figure}[h!]
-\includegraphics[width=.8\textwidth]{ss1-roc-auc}
+\includegraphics[height=\textheight]{ss1-roc-auc}
 \label{roc-ss1}
 \end{figure}
 
 We also compared the accuracy of point estimate under the two models. Here we expect BNP to do much better than \texttt{limma}. This is because \texttt{limma} produces point estimate for $\beta_g$ without any pooling of information, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller by approximately half relative to the same for \texttt{limma}.
 
 \begin{figure}[h!]
-\includegraphics[width=.6\textwidth]{ss1-mspe}
+\includegraphics[width=.8\textwidth]{ss1-mspe}
 \label{mspe-ss1}
 \end{figure}
 
@@ -222,7 +222,7 @@ For each simulation we computed the mean squared prediction error (MSPE) corresp
 % Ranking accuracy (ROCs)
 
 \begin{figure}[h!]
-\includegraphics[width=.9\textwidth]{ss2-roc-auc}
+\includegraphics[height=\textheight]{ss2-roc-auc}
 \caption{\small ROCS.}
 \label{ss2-roc}
 \end{figure}
