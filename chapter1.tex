@@ -52,12 +52,13 @@ $\mbox{gene}_2$& 414 & 422 & 383 & 416 & 392 & 346 & 402 & 351 \\
 \end{table}
 
 \subsection{Maize data of Paschold et al.}
-THIS IS PLAGARISM AT THIS POINT:
-We use as a motivating example a maize data set \citep{paschold} of RNA-seq gene expression in parental lines B73 and Mo17 and the reciprocal hybrid genotypes (B73$\times$Mo17, Mo17$\times$B73) with a total of 39,656 genes. Each variety had four biological replicates measured with Illumina methodology and equipment. Reads were mapped to the whole reference genome using the short reads aligner, NOVOALIGN. For more specifics, please see \cite{paschold}.
+We use as a motivating example a maize data set due to \citep{paschold}. These RNA-seq data consist of total aligned read counts for two parental lines, B73 and Mo17, and the reciprocal hybrid genotypes, B73$\times$Mo17 and Mo17$\times$B73, for 39,656 genes. Of these, 2835 genes were excluded because all counts were exactly zero. Each genotype had four biological replicates measured with Illumina methodology and equipment. Reads were mapped to the whole reference genome using the short reads aligner, NOVOALIGN. For more specifics, please see \cite{paschold}. The purpose of their experiment was to identify genes that play a role in the phenomenon known as heterosis, or hybrid vigor.
 
-Heterosis exists when the expected value of a hybrid phenotype differs from the average of the expected phenotypic values of the hybrid's parents.  The most interesting and useful form of heterosis, known as hybrid vigor, occurs when hybrid progeny display a mean phenotype that is superior to  both parental phenotypic means.  This heterosis phenomenon was scientifically documented in plants by \cite{darwin1876effects} and has long been used to improve agricultural production. One classic example involves hybrid maize offspring that are taller, faster to mature, and yield considerably more grain than their inbred parents \citep{hallauer1981quantitative, hallauer2010quantitative}.
+Heterosis refers to the phenomenon whereby, a hybrid type, that is a genotype which a cross of two inbred parental genotypes, exhibits some phenotypic advantage over either of the two parents. Often this is of practical importance in agriculture, where great effort and expense has be invested in identifying and breeding new varieties, often to increase productivity, quality or disease resistance. While the effects of heterosis are quite well-known, the genetic causes are not clear. Hopefully, new sequencing technologies, with the help of good statistical methods, will help researchers understand the mechanisms underlying heterosis to help efforts to improve agriculture, making it more efficient and productive.
 
-There is interest in using gene expression data to help identify genes that drive heterosis; i.e. where the mean gene expression of the hybrid is high relative to its parents.
+% The most interesting and useful form of heterosis, known as hybrid vigor, occurs when hybrid progeny display a mean phenotype that is superior to  both parental phenotypic means.  This heterosis phenomenon was scientifically documented in plants by \cite{darwin1876effects} and has long been used to improve agricultural production. One classic example involves hybrid maize offspring that are taller, faster to mature, and yield considerably more grain than their inbred parents \citep{hallauer1981quantitative, hallauer2010quantitative}.
+
+Having identified an objective for the analysis, we define some conventions to help with the statistical abstraction. For our purposes, we will say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. We have particular interest in two forms of extreme heterosis, high-parent and low-parent. High-parent heterosis occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis occurs when the expected value of a hybrid is lower than that of both parents.
 
 \subsection{Normalization and weighting}
 \paragraph{Normalization}
@@ -181,7 +182,10 @@ Since the proposed BNP method uses voom weights, we did a simulation study to co
 \end{enumerate}
 Produce 6-10 such data sets\\
 
-A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. One method, called a ``TREAT", tests whether the log-fold-change due to a model term is larger than a specified threshold in absolute value, i.e. it allows users to ranking genes based on the evidence of the hypothesis, $H_{gl}:|\beta_{gl}|>t$. The test uses a moderated t-test that involves an shrunken estimates of$\sigma^2_g$. We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites that $H_{gl}$ is true. The top panel of Figure \ref{roc-ss1} shows a typical receiver operator characteristic curve among the ten we observed. The bottom panel shows the area under the ROC curve (AUC) up to a FPR of 0.1. For both plots we show results for each component of $\beta$ (excluding the intercept) and a range of thresholds. In our simulations the BNP method tended to outperform \texttt{limma} on average. Note that while \texttt{limma} can perform tests with a threshold of zero, there is no comparable result for the BNP model, since this hypothesis has probability zero. The exception seems to be for the parental half-difference. For that particular set of tests, both \texttt{limma} and BNP appear to have similar accuracy.
+\paragraph{TREAT}
+A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. One method, called a TREAT, tests whether the log-fold-change due to a model term is larger than a specified threshold in absolute value, i.e. it allows users to ranking genes based on the evidence of the hypothesis, $H_{gl}:|\beta_{gl}|>t$. The inclusion of this test in their software was in response to the observation that even if an effect is statistically significant, often it is uninteresting unless it has a certain magnitude. TREAT is a moderated t-test that involves an shrunken estimates of $\sigma^2_g$ \citep{treat}. For more details, see \citet{treat}.
+
+We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites that $H_{gl}$ is true. We use receiver operating characteristic (ROC) curves to do this. ROC curves provide a graphical summary of the performance of a classifier by showing, as a function of the top $H$ genes as ranked by the classifier, the the proportion of cases correctly identified (true positive rate, TPR) along with the proportion of non-cases that are improperly identified (false positive rate, FPR). The top panel of Figure \ref{roc-ss1} shows a typical receiver operator characteristic curve among the ten we observed. The bottom panel shows the area under the ROC curve (AUC) up to a FPR of 0.1. For both plots we show results for each component of $\beta$ (excluding the intercept) and a range of thresholds. In our simulations the BNP method tended to outperform \texttt{limma} on average. Note that while \texttt{limma} can perform tests with a threshold of zero, there is no comparable result for the BNP model, since this hypothesis has probability zero. The exception seems to be for the parental half-difference. For that particular set of tests, both \texttt{limma} and BNP appear to have similar accuracy.
 %The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin.
 % This suggests that our method, by ``learning" the underlying distribution of $\beta$, increases the ability to detect effects of practical significance.
 
@@ -190,7 +194,7 @@ A common goal of gene expression profiling is to produce a ranked list of 'calle
 \label{roc-ss1}
 \end{figure}
 
-We also compared the accuracy of point estimate under the two models. Here we expect BNP to do much better than \texttt{limma}. This is because \texttt{limma} produces point estimate for $\beta_g$ without any pooling of information, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller by approximately half relative to the same for \texttt{limma}.
+We also compared the accuracy of point estimate under the two models. Here we expect BNP to do much better than \texttt{limma}. This is because \texttt{limma} produces point estimates for $\beta_g$ without any pooling, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller that those for \texttt{limma}.
 
 \begin{figure}[h!]
 \includegraphics[width=.8\textwidth]{ss1-mspe}
@@ -209,6 +213,17 @@ To compare estimation and accuracy of gene selection with existing methods desig
 \item Set $\tilde{y}_{gn} = \op{Round} \left\{ 2^{y_{gn} + \log_2(10^6) - \log_2(\bar{R}_{\cdot})} \right\}$
 \end{enumerate}
 % \end{minipage}
+
+
+% Ranking accuracy (ROCs)
+Both \texttt{DESeq2} and \texttt{edgeR} provide threshold tests similar to TREAT in \texttt{limma}. We again used ROC to compare the accuracy in gene ranking between these three methods. For this simulation, unlike the first, the true parameters for each gene are unique. In general, the difference in performance was less noticable in this simulation. To get at a measure of overall performance, we calculated the area under the ROC curve (AUC) up to a false positive rate of 0.1. Comparing AUC across the ten simulations, we see that there were difference is rankings between the methods for different tests and thresholds. BNP appears to do at least as well as both \texttt{DESeq2} and \texttt{edgeR} under each condition, but it outshone both of them when identifying genes with a hybrid effect larger than a threshold. We expect that BNP is an improvement here because the parental half-difference is informative about the hybrid affect, and data are informative about that relationship which is captured in the posterior for $\mathcal{P}$. We discuss this further in Section \ref{analysis}. 
+
+\begin{figure}[h!]
+\includegraphics[height=.8\textheight]{ss2-roc-auc}
+\caption{\small ROCS.}
+\label{ss2-roc}
+\end{figure}
+
 % Mean squared prediction error
 For each simulation we computed the mean squared prediction error (MSPE) corresponding to each element of $\beta_g$, $\frac{1}{G}\sum_{g=1}^G (\hat{\beta}_g-\beta_g)^2$ for both methods. The results, shown in Figure \ref{ss2-mspe}, show that estimation with BNP is more accurate with respect to MSPE than DESeq2.
 
@@ -219,29 +234,69 @@ For each simulation we computed the mean squared prediction error (MSPE) corresp
 \end{minipage}
 \label{ss2-mspe}
 \end{figure}
-% Ranking accuracy (ROCs)
+
+
+A further advantage that we have over these other methods is that by using posterior samples, we can evaluate probabilites of hypotheses with composite null parameter spaces which cannot be done using these other packages.
+%\citet{wang-phd} discussed how the geometry of the null parameter space for heterosis leads to serious difficulties with classical likelihood ratio tests; not the least of which is that p-values are not uniformly distributed under the null hypothesis, invalidating assumptions needed to apply corrections for multiple testing. 
+
+\begin{table}
+\caption{Definition of types of gene heterosis in terms of mean expression by genotype as well as using parameterization implied by the design matrix.}
+\label{def-heterosis}
+\begin{tabular}{ccc}
+Type of heterosis & Relation & $\beta$-parameterization\\
+high-parent B73xMo17 & $\max\{\mbox{B73,Mo17}\} < \mbox{B73xMo17}$ & $\phantom{-}|\beta_{g2}| < \beta_{g3} + \beta_{g4}$\\
+low-parent B73xMo17  & $\min\{\mbox{B73,Mo17}\} > \mbox{B73xMo17}$ & $-|\beta_{g2}| > \beta_{g3} + \beta_{g4}$\\
+high-parent Mo17xB73 & $\max\{\mbox{B73,Mo17}\} < \mbox{Mo17xB73}$ & $\phantom{-}|\beta_{g2}| < \beta_{g3} - \beta_{g4}$\\
+low-parent Mo17xB73  & $\min\{\mbox{B73,Mo17}\} > \mbox{Mo17xB73}$ & $-|\beta_{g2}| > \beta_{g3} - \beta_{g4}$
+\end{tabular}
+\end{table}
+
+The ROC plots suggests that the posterior probabilites do a good job with ranking the genes. However, because they are interpretable as probabilites, we can still question their accuracy relative to the frequency of true positives. Figure \ref{calib-ss2} shows estimated calibration curves for the 10 simulation studies for a set of hypotheses that might be of interest to researchers. Each curve was produced by binning genes by binning genes with similar posterior probabilites and plotting relative frequency of ``true-positives" vs. the midpoint probability of the bin. Note that monotonicity is all that is needed to produce a good ROC. There appears to be a tendency for
 
 \begin{figure}[h!]
-\includegraphics[height=\textheight]{ss2-roc-auc}
-\caption{\small ROCS.}
-\label{ss2-roc}
+\includegraphics[width=.8\textwidth]{calib-ss2}
+\caption{Curves describing calibration of posterior probabilities for simulation study 2.}
+\label{calib-ss2}
 \end{figure}
 
-Simulation of counts:
-To generate the simulated count data, we follow steps 1 and 2 of simulation study 1, and modify step 3: here, we bootstrap sample $W_{g,rep}$ from $W_g$ and simulate the pseudo-counts by
-$$y^*_{g,rep} \sim N(X\beta_g,\sigma^2_gW_{g,rep}^{-1}).$$
-Finally, we round $y^*_{g,rep}$ to obtain $y^*_{g,rep}$.
-
-
-
-
-Generally: Generate count data, truth estimated from model, and compare voom pipelines.
-
-Outputs: ROC curves, difference histograms
-
 \section{Analysis of Paschold data}
-To fit the Paschold data, we ran 4 chains, each for 40,000 iterations after 30,000 iterations of warmup. The samples were thinned by a factor of 40, for a total of 4,000 thinned post-warmup draws for each gene-specific parameter and $\alpha$. 
+\label{analysis}
+To fit the Paschold data, we ran 4 chains, each for 40,000 iterations after 30,000 iterations of warmup. The samples were thinned by a factor of 40, for a total of 4,000 thinned post-warmup draws for each gene-specific parameter and $\alpha$. Posterior probabilities of prespecified hypotheses as well as posterior means and meansquares for the gene-specific parameters, $\beta_g$ and $\sigma_g$, were computed using all the draws using running means.
 
+In the original paper, a the results of a set of hypothesis tests was used to classify genes into nine categories specifying the relationships between mean expression of each hybrid variety and the two parental lines. In Figure \ref{orig-compare}, we show histograms of posterior probabilities pertaining to high- and ow-parent gene heterosis for the genes subsetted by whether or not they were classified as ``discoveries'' in the original paper. High-parent heterosis corresponds to genes for which the mean expression of the hybrid is higher than the more highly expressed parent and low-parent heterosis where it is lower than the less expressed parent.
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\textwidth]{orig-compare}
+\caption{Posterior probabilities for low- and high-parent gene heterosis hypotheses for subsets of genes classified as discoveries and non-discoveries in the original \citet{paschold} paper.}
+\label{orig-compare}
+\end{figure}
 
+Generally speaking, the posterior probabilities tend to agree with the categorization --- particularly for non-discoveries --- however, a number of discoveries have low posterior probabilities in our analysis. This is likely due to borrowing of information across genes leading to shrinkage toward general patterns of expression, where both low- and high- parental expression were uncommon (\citet{paschold} found evidence of these extreme patterns in less than 1\% of genes.) Figure \ref{het-shrink} shows how the nonparametric model shrinks estimates. Genes categorized as showing evidence of extreme gene heterosis in the original paper are represented as black points. The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect overlayed on a bivariate histogram of the independent estimates for all genes. The right
+panel shows the corresponding estimates for our analysis overlayed on a posterior pointwise estimate of $\mathcal{P}$. In this second plot we can see significant shrinkage toward the regions where $\mathcal{P}$ has higher posterior density. This helps to explain why a large number of discovered genes have low posterior probabilities for the heterosis hypotheses: when weighed against the overall patterns within the data, in many cases it is likely that the magnitude of the independent estimates is overstated and that detection was a result of random variation.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\textwidth]{heterosis-shrinkage}
+\begin{minipage}{.8\textwidth}
+\caption{\small The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect for genes classified as heterotic in \citet{paschold} overlayed on a bivariate histogram of the independent estimates for all genes. The right
+panel shows the corresponding estimates for our analysis overlayed on a posterior pointwise estimate of $\mathcal{P}$. In this second plot we can see significant shrinkage toward the regions where $\mathcal{P}$ puts more probability in the posterior.}
+\end{minipage}
+\label{het-shrink}
+\end{figure}
+
+\section{Conclusions}
+Hierarchical models have an important role in problems where, as is true in gene expression, the number of model parameters is much larger than the number of subjects. By modeling the parameters, we use the ``between-gene" information in the data to moderate our inferences about individual genes . The use of hierarchical models for gene expression analyses is standard. Empirical evidence suggests, however, that model assumptions often made about the distribution of the gene-specific parameters are not realistic --- rather, the empirical distributions can exhibit complex shapes. However, it seems difficult to suggest a parametric alternative to the common default assumptions (independence, normality.) We have demonstrated a computationally demanding, yet feasible, alternative: a Dirichlet process prior on this unknown distribution.
+
+Our simulation studies show that the BNP model presented here provides a viable alternative to more standard methods. Intuitively, it performs substantially better than the alternative methods we considered in cases where the data are strongly suggestive of an underlying distribution that violates standard assumptions, particularly of independence.
+
+Additionally, while posterior sampling is cumbersome in the amount of memory involved (approximately 6 GB for 4,000 samples of $\beta$), the interpretability of posterior quantities of interest and the inferential flexibility allowed make a strong case in advocating for the use of the Bayesian approach.
+
+\section{Discussion}
+
+We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the affect of the recessesive allele in the heterozygous maize plant.
+
+There are various modifications that might be considered to our model, within the same graphical structure. In the BNP method, precision weighting was used to correct for inaccuracies in mean-variance relationship implied by a normal assumption on the normalized log-counts. We would prefer not to have our inference conditional on these pre-computed estimates. An alternative approach would be to adopt an over-dispersed count model, such as the negative binomial and model the counts directly. Our reason for not doing this in the first place is that by proper choice of base measure, we get conditionally conjugate draws for $\tilde{\beta}_k$ and $\tilde{\sigma}^2_k$ that depend only on simple linear combinations of low-dimensional summaries of the counts. In contrast, the log-likelihood for the negative binomial involves quantities such as $\sum_n \log \Gamma(y_{gn}+\phi)$, for real-valued overdispersion parameter $\phi$, which is not linear in the parameter. Despite such nuisances, the overall structure of our Gibbs sampler would remain unchanged.
+
+Another modification that we might consider is the choice of prior for the stick-breaking weights. The implication of the $\op{Beta}(1, \alpha)$ priors is that the weights decay exponentially on average. A generalization described in \cite{ishwaran2001} is $\nu \sim \op{Beta}(1-a, b + ak)$, which the authors refer to as a Pitman-Yor process, contains the Dirichlet process as a special case ($a=0,b=\alpha$). Other restrictions can selected to represent alternative prior assumptions. For example, one can select $a=\alpha, b=0$ which implies that the weights follow a power law. We might expect that this would lead to more significant weights and thus less aggressive shrinkage that the Dirichlet process.
 
 
