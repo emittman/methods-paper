@@ -43,7 +43,18 @@ binned_probs <- ldply(1:10, function(i){
   
 })
 
-ggplot(binned_probs, aes(x=mids, y=freq_true, group=sim)) +
-  geom_line(alpha=.5) + geom_abline(slope=1) +
+binned_probs <- mutate(binned_probs,
+        hyp = factor(hyp, levels = c("high_mean", "hp_h12",
+                                     "lp_h12", "hp_h21",
+                                     "lp_h21","de_p1"),
+                     labels= c("high mean", "high-parent B73xMo17",
+                               "low-parent B73xMo17", "high-parent Mo17xB73",
+                               "low-parent Mo17xB73", "B73 > Mo17")))
+
+binned_probs %>% filter(!(hyp %in% c("high mean", "B73 > Mo17"))) %>%
+ggplot(aes(x=mids, y=freq_true, group=sim)) +
+  geom_line(alpha=.2) + geom_abline(slope=1) +
   facet_wrap(~hyp) +
-  theme_bw()
+  theme_bw() +
+  ylab("relative frequency of true positives")+
+  xlab("binned posterior probability")
