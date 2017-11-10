@@ -56,7 +56,7 @@ diffHexHist <- function(df1, df2, bins, zmax=NA, zname="A-B"){
     guides(alpha = FALSE, size = FALSE)+ theme_bw()
 } 
 
-PointwiseMedianHex <- function(P, dim1=2, dim2=3, bins=30, zmax=NA, zname="Pointwise median"){
+PointwiseMedianHex <- function(P, dim1=2, dim2=3, bins=30, zmax=NA, zname="Pointwise median", alpha=1){
   require(hexbin)
   require(ggplot2)
   require(scales)
@@ -105,14 +105,14 @@ PointwiseMedianHex <- function(P, dim1=2, dim2=3, bins=30, zmax=NA, zname="Point
   p1 <- filter(out, mean > 0) %>%
     ggplot() +
     geom_hex(aes(x = x, y = y, fill = mean),
-             stat = "identity") +
+             stat = "identity", alpha=alpha) +
     scale_fill_continuous(name="pointwise (trimmed) mean", trans="log",
                           low="white",high="midnightblue",breaks=10^-(2:10)
     )
   p2 <- filter(out, mean > 0) %>%
     ggplot() +
     geom_hex(aes(x = x, y = y, fill = sd),
-             stat = "identity") +
+             stat = "identity", alpha=alpha) +
     scale_fill_continuous(name="pointwise normalized SD", trans="log",
                           low="white",high="midnightblue",breaks=10^-(2:10)
     )
