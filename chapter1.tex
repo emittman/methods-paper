@@ -29,50 +29,41 @@ In the present article, we propose a Bayesian nonparametric model which extends 
 \label{sec:data}
 The starting point for our analyses is an array of RNA-seq total aligned read counts measuring the abundance of a particular messenger RNA transcript in a sample. Such an array consists of $G$ rows and $N$ columns, corresponding to genes and samples, respectively. The abundance of a transcript is often referred to as gene expression; we will follow this convention here. For more details on data collection and preprocessing of RNA-seq data, please see Nettleton and Datta (2016).
 
-A simple analysis of RNA-seq data may be acheived by analyzing each gene independently. The experimental design can generally considered the same for all genes. Select rows for an example data set are shown below in Table \ref{tab:ex-1}.
+A simple analysis of RNA-seq data may be acheived by analyzing each gene independently. The experimental design can generally considered the same for all genes. Select rows for an example data set are shown below in Table \ref{counts}.
 
+% latex table generated in R 3.4.2 by xtable 1.8-2 package
+% Thu Nov 09 17:08:22 2017
+% latex table generated in R 3.4.2 by xtable 1.8-2 package
+% Thu Nov 09 17:12:54 2017
 \begin{table}[ht]
 \centering
 \begin{minipage}{.8\textwidth}
-\caption{\small Sample of RNA-seq total read counts from \citep{paschold}. Columns names identify samples, including the genotype and a replicate number, from which we can infer the flow cell that was used for sequencing. Gene annotation information (regarding the rows), is not used for in our analysis. The first and last genes listed strongly indicate differential expression between the two inbred maize lines.}
+\caption{\small Selected rows from RNA-seq data set showing total aligned read counts for selected genes. Columns are grouped by genotype. Genes were selected as exemplars for different types of heterosis as defined in Section \ref{intro-paschold}. Plots of the data are shown in Figure \ref{exemplars}.}
+\label{counts}
 \end{minipage}
-\label{tab:ex-1}
-\vspace{.25cm}
-\begin{tabular}{lrrrrrrrr}
-  \hline
-& $\mbox{B73}_1$ & $\mbox{B73}_2$ & $\mbox{B73}_3$ & $\mbox{B73}_4$ & $\mbox{Mo17}_1$ & $\mbox{Mo17}_2$ & $\mbox{Mo17}_3$ & $\mbox{Mo17}_4$ \\ 
-  \hline
-$\mbox{gene}_1$ & 666 & 590 & 654 & 703 &   3 &   3 &   1 &   1 \\ 
-$\mbox{gene}_2$& 414 & 422 & 383 & 416 & 392 & 346 & 402 & 351 \\ 
-  $\mbox{gene}_3$ & 1525 & 1530 & 904 & 833 & 1688 & 1568 & 1413 & 1377 \\ 
-  $\mbox{gene}_4$ &  12 &  11 &   5 &   2 &   8 &  20 &   9 &   6 \\ 
-  $\mbox{gene}_5$ &   1 &   1 &   0 &   2 & 951 & 945 & 1157 & 867 \\ 
-   \hline
+\scalebox{0.7}{
+\begin{tabular}{l|rrrr|rrrr|rrrr|rrrr}
+  \toprule
+\multicolumn{1}{c}{type of heterosis} &  \multicolumn{4}{c}{B73} & \multicolumn{4}{c}{B73xMo17} & \multicolumn{4}{c}{Mo17xB73}& \multicolumn{4}{c}{Mo17}  \\ 
+  \midrule
+HPH & 1431 & 1199 & 1235 & 1569 & 2055 & 1652 & 2149 & 2168 & 2415 & 1815 & 2142 & 2369 & 1127 & 987 & 1672 & 1518 \\ 
+  LPH &  86 &  62 & 131 & 128 &  52 &  43 &  85 &  95 &  60 &  23 &  63 &  74 &  85 &  71 & 178 & 205 \\ 
+  mixed & 122 &  98 & 146 & 150 &  73 &  77 & 159 & 127 & 178 & 122 & 259 & 252 & 108 & 103 & 207 & 171 \\ 
+  neither &  30 &  31 &  42 &  48 &  17 &  15 &  22 &  26 &  16 &  13 &  16 &  22 &   2 &   2 &   2 &   2 \\ 
+   \bottomrule
 \end{tabular}
+}
 \end{table}
 
 \subsection{Maize data of Paschold et al.}
+\label{intro-paschold}
 We use as a motivating example a maize data set due to \citep{paschold}. These RNA-seq data consist of total aligned read counts for two parental lines, B73 and Mo17, and the reciprocal hybrid genotypes, B73$\times$Mo17 and Mo17$\times$B73, for 39,656 genes. Of these, 2835 genes were excluded because all counts were exactly zero. Each genotype had four biological replicates measured with Illumina methodology and equipment. Reads were mapped to the whole reference genome using the short reads aligner, NOVOALIGN. For more specifics, please see \cite{paschold}. The purpose of their experiment was to identify genes that play a role in the phenomenon known as heterosis, or hybrid vigor.
 
 Heterosis refers to the phenomenon whereby, a hybrid type, that is a genotype which a cross of two inbred parental genotypes, exhibits some phenotypic advantage over either of the two parents. Often this is of practical importance in agriculture, where great effort and expense has be invested in identifying and breeding new varieties, often to increase productivity, quality or disease resistance. While the effects of heterosis are quite well-known, the genetic causes are not clear. Hopefully, new sequencing technologies, with the help of good statistical methods, will help researchers understand the mechanisms underlying heterosis to help efforts to improve agriculture, making it more efficient and productive.
 
 % The most interesting and useful form of heterosis, known as hybrid vigor, occurs when hybrid progeny display a mean phenotype that is superior to  both parental phenotypic means.  This heterosis phenomenon was scientifically documented in plants by \cite{darwin1876effects} and has long been used to improve agricultural production. One classic example involves hybrid maize offspring that are taller, faster to mature, and yield considerably more grain than their inbred parents \citep{hallauer1981quantitative, hallauer2010quantitative}.
 
-Having identified an objective for the analysis, we define some conventions to help with the statistical abstraction. For our purposes, we will say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. We have particular interest in two forms of extreme heterosis, high-parent and low-parent. High-parent heterosis occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis occurs when the expected value of a hybrid is lower than that of both parents.
-
-\subsection{Normalization and weighting}
-\paragraph{Normalization}
-Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. Different methods for normalization have been proposed. \citet{robinson2010} proposed a method called trimmed mean of M-values (TMM) to correct between-sample biases by compare observed log-fold-change values between samples for all genes. Under the assumption that most genes are not differentially expressed, they use a trimmed mean to robustly estimate the bias. When there are more than two samples, the same methodology is extended by using one sample as a reference. For details, see \citet{robinson2010}.
-
-\paragraph{Precision weights adjust for non-contant variance}
-Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{V}(C|\mu)=\mu, \mu=\op{E}(C)$), if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads overdispersion of the counts. Often, the negative binomial distribution is used because its variance is quadratic with the mean ($\op{V}(C|\mu)=\mu+\phi\mu^2$). Because gene expression is usually measured on the log scale, through an application of the delta method, we can re-express this approximately in terms of the log-count ($\op{V}(\log C|\mu) \approx \frac{1}{\mu} + \phi$. While this assumption may be adequate for genes with similar expression levels, empirical studies suggest that the overdispersion parameter, $\phi$, tends to be larger for genes with lower expression than those with higher expression.
-
-\cite{voom} proposed \textit{voom}, a way to incorporate between-gene information about the mean-variance relationship in an RNA-seq data set through precision weighting of individual log-counts, making the data amenable to analysis with a linear model. It works by first calculating, for each gene, a sample standard deviation and mean log-count, and then fitting a LOWESS curve, treating the square root standard deviation as a response and the mean log-count as the predictor. Fitted values are then calculated for all counts, which are converted into precision weights.
-
-Rather than assuming the mean-variance relationship of the negative binomial and allowing for an adjustment of the degree of overdispersion from gene to gene, voom's precision weighting scheme estimates the mean-variance relationship from the data and assumes that it applies both within as well as across genes. We use the precision weights as an input to our model (Section \ref{sec:model}) which estimates a gene-specific variance parameter. Our use of voom in our pipeline implies a gene-specific mean-variance relationship \textit{for the log counts} given by
-$$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
-
-
+Having identified an objective for the analysis, we define some conventions to help with the statistical abstraction. For our purposes, we will say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. To be precise, we define multiple kinds of heterosis in terms of the mean expression levels of the genotypes. High-parent heterosis (HPH) occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis (LPH) occurs when the expected value of a hybrid is lower than that of both parents.
 
 \section{Bayesian nonparametric model}
 The advantage of hierarchical modeling generally is that that by assumming a distribution, $\mathcal{P}$, on some parameters $\theta_g$ and by allowing the parameters of $\mathcal{P}$ to be learned from the data, we can borrow information across groups to reduce our uncertainty about $\theta_g$. An implication of the misspecification of the distribution on the parameters can be that the utility of the hierarchical model is reduced; the information that the model is capable of borrowing is diminished.
@@ -110,37 +101,31 @@ The bottom three panels of Figure \ref{predictive} show density estimates and 90
 
 
 \subsection{BNP model for RNA-seq data}
-
-
 \label{sec:model}
-Let $y_{gn}$ represent the normalized log-cpm for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. We will use the upper case letters $G$ and $N$, to denote the number of genes and samples, respectively. Also let $w_{gn}$ be the precision weight for $y_{gn}$. For the observed data, we assume the normal model
+Let $y_{gn}$ represent the normalized log-cpm for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. Let $g=1,...,G$ and $n=1,...N$ index genes and samples, respectively. Let
 \begin{equation}
-y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right).
+y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right)
 \end{equation}
-Next, we propose to model jointly
-
+where $w_{gn}$ is a given relative precision for $y_{gn}$. While not critical to our method, the inclusion of these precisions allows us to avoid dependence on the assumption of constant variance within genes. This is discussed further in Section \ref{norm-weight}. As discussed in the previous Section, we intend to model the gene-specific parameters nonparametrically, letting the vector of gene specific parameters follow a Dirichlet process. This is denoted by
 \begin{equation}
-\left(\beta_g^\top,\sigma^2_g\right) \ind \mathcal{P},
+\left(\beta_g^\top,\sigma^2_g\right) \ind \mathcal{P},\quad \mathcal{P} \sim \op{DP}(\alpha \mbox{Q}).
 \end{equation}
-where we specify a Dirichlet process on $\mathcal{P}$, i.e.,
+The implication is that $\mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)}$, where $\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right) \ind Q$, where $\delta_{x}$ represents the Dirac delta function (a point mass at $x$) and $\pi$ follows a stick-breaking distribution with concentration parameter $\alpha$. The stick-breaking representation of the DP, due to \citet{sethuraman}, is equivalent to a reparameterization of $\{\pi_k\}$ in terms of $\{\nu_k\}$ where $\pi_k = \nu_k \prod_{l<k}(1-\nu_l)$. While the Dirichlet process allows for flexibility in learning $\mathcal{P}$, it can also avoid overfitting the data. These opposing goals are accomplished simultaneously by assuming some positive prior probability that $(\beta_g^\top,\sigma_g^2)=(\beta_{g'}^\top,\sigma^2)$ for any genes, $g$ and $g'$. The stick-breaking distribution is defined by $\nu_k \ind \op{Beta}(1, \alpha),\; \alpha>0$, so that larger values of $\alpha$ will lead to smaller values of $\nu_k$. Notice that $E(\pi_k)=\alpha^{k-1}/(\alpha+1)^{k}$ (because $\nu_k$ are i.i.d.), so $\op{E}(\pi_k)>\op{E}(\pi_l),\;k<l$. It follows that the rate of decay is inversely related to the magnitude of $\alpha$.
 
-\begin{equation}
-\mathcal{P} \sim \op{DP}(\alpha \mbox{Q}).
-\end{equation}
-
-\iftoggle{thesis}{
-The use of this prior, due to \citet{ferguson}, is a distribution over probability distributions, such that for any finite disjoint partition $\{A_i\}_{i>=1}^n$ on $\mathbb{R}^p$, $\mathcal{P}$ is a random measure such that the joint distribution $\left(\mathcal{P}(A_1),\ldots,\mathcal{P}(A_n)\right) \sim \op{Dir}\left(\alpha Q(A_1),\ldots,\alpha Q(A_n)\right).$ The Dirichlet process has two parameters: $Q$, the base measure, represents a prior guess at the distribution. $\alpha$, the concentration parameter expresses the degree to which $\mathcal{P}$ will agree with $Q$ on any set $A$. This follows from the definition given above and known properties of the Dirichlet distribution, i.e., $\op{E}\left(\mathcal{P}(A)\right)=Q(A)$, and $\op{V}\left(\mathcal{P}(A)\right)=\frac{Q(A)(1 - Q(A)}{\alpha + 1}$, showing that $\mathcal{P}(A) \stackrel{p}{\rightarrow} Q(A)$ as $\alpha \rightarrow \infty$ for any set $A$. 
-}{}
-By modeling $\mathcal{P}$ with a Dirichlet process one can be noninformative about the overall shape of $\mathcal{P}$, allowing for irregular shapes, multimodality, and so forth. An argument can be made that by incorporating our uncertainty about these features of the distribution is required for coherent interpretation of the posterior distribution \citep{walker2010bayesian}. For more information about the properties of the DP, see \cite{ferguson}.
-
-As shown by \citet{sethuraman}, it follows from the definition of the Dirichlet process that $\mathcal{P}$ is almost surely discrete and realizations of $\mathcal{P}$ can be produced by the following stick-breaking construction:
-
-Let 
-\begin{equation}
-\mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)}.
-\end{equation}
-Here $\delta_{(.)}$ is the Dirac delta function. Note that although almost sure discreteness is a property applicable to ``draws'' from a DP, the posterior for $\mathcal{P}$ is in fact a mixture of DP \citep{antoniak}. An implication of discretness can be thought of as a ``bet on sparsity"; that there are actually a finite (but unspecified) number of unique values that $(\beta_g^\top,\sigma^2_g)$ can take.  
- The ``atoms" distributed according to $Q$, specified by the product measure
+The stick-breaking representation of the DP makes clear the role of $Q$: it serves as a kind of proposal distribution for the atoms, $\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)$. We choose $Q$ to be a product measure on the atoms given by
+% \iftoggle{thesis}{
+% The use of this prior, due to \citet{ferguson}, is a distribution over probability distributions, such that for any finite disjoint partition $\{A_i\}_{i>=1}^n$ on $\mathbb{R}^p$, $\mathcal{P}$ is a random measure such that the joint distribution $\left(\mathcal{P}(A_1),\ldots,\mathcal{P}(A_n)\right) \sim \op{Dir}\left(\alpha Q(A_1),\ldots,\alpha Q(A_n)\right).$ The Dirichlet process has two parameters: $Q$, the base measure, represents a prior guess at the distribution. $\alpha$, the concentration parameter expresses the degree to which $\mathcal{P}$ will agree with $Q$ on any set $A$. This follows from the definition given above and known properties of the Dirichlet distribution, i.e., $\op{E}\left(\mathcal{P}(A)\right)=Q(A)$, and $\op{V}\left(\mathcal{P}(A)\right)=\frac{Q(A)(1 - Q(A)}{\alpha + 1}$, showing that $\mathcal{P}(A) \stackrel{p}{\rightarrow} Q(A)$ as $\alpha \rightarrow \infty$ for any set $A$. 
+% }{}
+% By modeling $\mathcal{P}$ with a Dirichlet process one can be noninformative about the overall shape of $\mathcal{P}$, allowing for irregular shapes, multimodality, and so forth. An argument can be made that by incorporating our uncertainty about these features of the distribution is required for coherent interpretation of the posterior distribution \citep{walker2010bayesian}. For more information about the properties of the DP, see \cite{ferguson}.
+% 
+% As shown by \citet{sethuraman}, it follows from the definition of the Dirichlet process that $\mathcal{P}$ is almost surely discrete and realizations of $\mathcal{P}$ can be produced by the following stick-breaking construction:
+% 
+% Let 
+% \begin{equation}
+% \mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)}.
+% \end{equation}
+% Here $\delta_{(.)}$ is the Dirac delta function. Note that although almost sure discreteness is a property applicable to ``draws'' from a DP, the posterior for $\mathcal{P}$ is in fact a mixture of DP \citep{antoniak}. An implication of discretness can be thought of as a ``bet on sparsity"; that there are actually a finite (but unspecified) number of unique values that $(\beta_g^\top,\sigma^2_g)$ can take.  
+%  The ``atoms" distributed according to $Q$, specified by the product measure
 
 \begin{equation}
 \tilde{\beta}_k \sim \op{N}(m_\beta, C_\beta),\quad \tilde{\sigma}^2_k \sim \op{IG}(a_{\sigma^2}, b_{\sigma^2}).
@@ -152,22 +137,82 @@ p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
 \end{equation*}
 
 
-The mixture weights, $\pi_k$,  follow a stick-breaking process \cite{sethuraman}. Using the reparameterization,
+% The mixture weights, $\pi_k$,  follow a stick-breaking process \cite{sethuraman}. Using the reparameterization,
+% 
+% \begin{equation}
+% \nu_k = \frac{\pi_k}{1 - \sum_{l=1}^{k-1} \pi_l},
+% \end{equation}
+% 
+% $\nu_k$ representing a proportion of the total probability remaining after $k-1$ breaks. For the stick-breaking construction of the DP, the $\nu_k$ are modeled by:
+% \begin{equation}
+% \nu_k \ind \op{Beta}(1, \alpha).
+% \end{equation}
+% 
+% This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$.
 
-\begin{equation}
-\nu_k = \frac{\pi_k}{1 - \sum_{l=1}^{k-1} \pi_l},
-\end{equation}
+\subsection{Normalization and weighting}
+\label{norm-weight}
+\paragraph{Normalization}
+Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. Different methods for normalization have been proposed. \citet{robinson2010} proposed a method called trimmed mean of M-values (TMM) to correct between-sample biases by compare observed log-fold-change values between samples for all genes. Under the assumption that most genes are not differentially expressed, they use a trimmed mean to robustly estimate the bias. When there are more than two samples, the same methodology is extended by using one sample as a reference. For details, see \citet{robinson2010}.
 
-$\nu_k$ representing a proportion of the total probability remaining after $k-1$ breaks. For the stick-breaking construction of the DP, the $\nu_k$ are modeled by:
-\begin{equation}
-\nu_k \ind \op{Beta}(1, \alpha).
-\end{equation}
+\paragraph{Precision weights adjust for non-contant variance}
+Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(C_{gn})=\op{E}(C_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$). Because gene expression is usually measured on the log scale, consider the delta method  approximation for a negative binomial count in terms of the log-count: $\op{Var}(\log C_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g)=1/\mu_{gn} + \phi_g$. In other words, for a fixed $\phi>0$, a negative binoimal assumption assumes log-counts whose variance is a decreasing function of the mean, with asymptote at $\phi_g>0$. While this assumption may be adequate in some cases, empirical studies suggest that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with. 
 
-This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$.
+\cite{voom} proposed \textit{voom}, a way to incorporate between-gene information about the mean-variance relationship in an RNA-seq data set through precision weighting of individual log-counts, making the data amenable to analysis with a linear model. It works by first calculating, for each gene, a sample standard deviation and mean log-count, and then fitting a LOWESS curve, treating the square root standard deviation as a response and the mean log-count as the predictor. Fitted values are then calculated for all counts, which are converted into precision weights. This leads to a different model for the variance, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. This is a somewhat different model, with $\sigma_g$ as a multiplicative term rather than additive, but this doesn't seem to be a critical issue. To use \texttt{voom} in our pipline requires both that we estimate $\op{Var}_{LOWESS}(\mu)$ and then plug in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
+
+% Rather than assuming the mean-variance relationship of the negative binomial and allowing for an adjustment of the degree of overdispersion from gene to gene, voom's precision weighting scheme estimates the mean-variance relationship from the data and assumes that it applies both within as well as across genes. We use the precision weights as an input to our model (Section \ref{sec:model}) which estimates a gene-specific variance parameter. Our use of voom in our pipeline implies a gene-specific mean-variance relationship \textit{for the log counts} given by
+% $$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
 
 \subsection{Priors}
 The base measure, $Q$, represents a prior guess at $\mathcal{P}$. The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we set $Q$ by matching the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. The prior distribution for $\alpha$ was chosen by considering the implied expected number of clusters. Although we it is difficult to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, we cannot deal with more than about 6000 clusters. We select the prior $\alpha \sim \op{Ga}(3,3/G^{0.5})$, which implies the expected number of clusters is likely between $G^{0.5}$ and $G^{0.75}$.
+
+The Dirichlet process satisfies two requirements proposed by \citet{ferguson}, that it have large support on the space of probability distributions and that it be computationally tractable. The tractibility of the DP makes the construction of a Gibbs sampler relatively straightforward, which we turn to now.
 %For $\beta_gl$; $l=2,3,4,5$, these were obtained using the \texttt{estimateBetaPriorVar} from the \texttt{DESeq2} package using the ``quantile" method. For $\beta_g1$ and $\sigma^2_g$, a similar m
+
+\subsection{Gibbs Sampler}
+Our Gibbs sampler for performing MCMC sampling from the posterior distribution for the BNP model is adapted from the blocked Gibbs sampler of \ref{ishwaran2000}. The steps are as follows:
+
+\paragraph{Sample $\zeta_g$, $\alpha$:}
+
+\begin{equation*}
+\zeta_g \ind \op{Categorical}_K\left(\hat{\pi}_k \right), \mbox{ with}
+\end{equation*}
+\begin{equation*}
+\hat{\pi}_k \propto \pi_k \op{N}(y_g;X\tilde{\beta}_k,\tilde{\sigma}_k^2 W_g).
+\end{equation*}
+Here $W_g$ is a diagonal matrix consisting of the log-count specific precisions. Conditional on everything else, the $\zeta_g$ parameters are independent $K$-categorical random variables with weights proportional to the likelihood of $y_g$ given $\tilde{\beta}_k$ and $\tilde{\sigma}_k$, weighted by $\pi_k$. This step is the most computationally intensive; just computing the weights requires the calculation of $G\times K$ such likelihoods. However, using fine-grained GPU parallelism, doing so is practically feasible. $\alpha$ is conditionally independent of the $\zeta_g$s and has the conjugate full conditional
+\begin{equation*}
+\alpha \sim \op{Gamma}(K + a_\alpha - 1, -\log \pi_K + b_\alpha).
+\end{equation*}
+
+
+\paragraph{Sample $\tilde{\beta}_k$:}
+\begin{equation*}
+\tilde{\beta}_k \sim \op{N}(\hat{m}_k,\, \hat{C}_k),
+\end{equation*}
+\begin{equation*}
+\mbox{ where }\hat{C}_k= \left( \sigma^{-2}_g\sum_{g:\zeta_g=k}
+  X^\top W_g X + C^{-1} \right)^{-1}, \mbox{ and }\hat{m}_k=\hat{C}_k \left(\sum_{g:\zeta_g=k} X^\top W_g y_g +
+      C^{-1}m \right).
+\end{equation*}
+The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq k$ for all $g$, then $\tilde{\beta}_k$ is simply drawn from it prior. 
+
+\paragraph{Sample $\tilde{\sigma}_k$s}
+\begin{equation*}
+      \tilde{\sigma}_k = \op{IG}(\hat{a}_k,\hat{b}_k), 
+    \end{equation*}
+    \begin{equation*}
+      \mbox{ where }\hat{a}_k = a_{\sigma^2} + \frac{NM_k}{2},\mbox{ and }\hat{b}_k= b_{\sigma^2} + \sum_{g:\zeta_g=k}y_g^\top W_g y_g -2 \beta_g^\top X^\top W_g y_g  +\beta_g^\top X^\top W_g X \beta_g
+    \end{equation*}
+
+    Here $M_k$ is the number of $g$ for which $\zeta_g = k$. Again, the $\tilde{\sigma}_k$ are conditionally independent.
+
+\paragraph{Sample $\nu$}
+\begin{equation*}
+\nu_k ~ \op{Be}(M_k + 1, \sum_{l>k}M_l + \alpha).
+\end{equation*}
+
+Derivations of the full conditionals are given in Appendix \ref{full-conditionals}.
 
 \section{Simulation study 1}
 Since the proposed BNP method uses voom weights, we did a simulation study to compare the our method to the voom-limma method for RNA-seq data. The voom-limma method fits a linear model to the data under the same transformation conditional on the same voom quality weights, but proceeds by fitting each gene independently. Thus, a comparison of the estimates obtained under BNP model to the voom-limma estimates will show the result of borrowing information across genes via the Dirichlet process prior on $\mathcal{P}$.
@@ -263,7 +308,8 @@ The ROC plots suggests that the posterior probabilites do a good job with rankin
 \label{analysis}
 To fit the Paschold data, we ran 4 chains, each for 40,000 iterations after 30,000 iterations of warmup. The samples were thinned by a factor of 40, for a total of 4,000 thinned post-warmup draws for each gene-specific parameter and $\alpha$. Posterior probabilities of prespecified hypotheses as well as posterior means and meansquares for the gene-specific parameters, $\beta_g$ and $\sigma_g$, were computed using all the draws using running means.
 
-In the original paper, a the results of a set of hypothesis tests was used to classify genes into nine categories specifying the relationships between mean expression of each hybrid variety and the two parental lines. In Figure \ref{orig-compare}, we show histograms of posterior probabilities pertaining to high- and ow-parent gene heterosis for the genes subsetted by whether or not they were classified as ``discoveries'' in the original paper. High-parent heterosis corresponds to genes for which the mean expression of the hybrid is higher than the more highly expressed parent and low-parent heterosis where it is lower than the less expressed parent.
+In the original paper, a the results of a set of hypothesis tests was used to classify genes into nine categories specifying the relationships between mean expression of each hybrid variety and the two parental lines. In Figure \ref{orig-compare}, we show histograms of posterior probabilities pertaining to high- and ow-parent gene heterosis for the genes subsetted by whether or not they were classified as ``discoveries'' in the original paper. High-parent heterosis corresponds to genes for which the mean expression of the hybrid is higher than the more highly expressed parent and low-parent heterosis where it is lower than the less expressed parent. Generally speaking, the posterior probabilities tend to agree with the categorization --- particularly for non-discoveries --- however, a number of discoveries have low posterior probabilities in our analysis. This is likely due to borrowing of information across genes leading to shrinkage toward general patterns of expression, where both low- and high- parental expression were uncommon (\citet{paschold} found evidence of these extreme patterns in less than 1\% of genes.) We also note that a small number of non-discoveries are found to have high-posterior heterosis probabilities. Due to the multidimensional shrinkage featured by the model, it can be difficult to sort out what accounts for the difference in some cases.
+
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{orig-compare}
@@ -271,8 +317,20 @@ In the original paper, a the results of a set of hypothesis tests was used to cl
 \label{orig-compare}
 \end{figure}
 
-Generally speaking, the posterior probabilities tend to agree with the categorization --- particularly for non-discoveries --- however, a number of discoveries have low posterior probabilities in our analysis. This is likely due to borrowing of information across genes leading to shrinkage toward general patterns of expression, where both low- and high- parental expression were uncommon (\citet{paschold} found evidence of these extreme patterns in less than 1\% of genes.) Figure \ref{het-shrink} shows how the nonparametric model shrinks estimates. Genes categorized as showing evidence of extreme gene heterosis in the original paper are represented as black points. The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect overlayed on a bivariate histogram of the independent estimates for all genes. The right
+Figure \ref{het-shrink} shows how the nonparametric model shrinks estimates. Genes categorized as showing evidence of extreme gene heterosis in the original paper are represented as black points. The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect overlayed on a bivariate histogram of the independent estimates for all genes. The right
 panel shows the corresponding estimates for our analysis overlayed on a posterior pointwise estimate of $\mathcal{P}$. In this second plot we can see significant shrinkage toward the regions where $\mathcal{P}$ has higher posterior density. This helps to explain why a large number of discovered genes have low posterior probabilities for the heterosis hypotheses: when weighed against the overall patterns within the data, in many cases it is likely that the magnitude of the independent estimates is overstated and that detection was a result of random variation.
+
+A result of this shrinkage is increased posterior precision. Figure \ref{exemplars} shows 90\% posterior credible intervals for the exemplar genes from Table \ref{counts}.
+
+\begin{figure}[ht!]
+\includegraphics[width=.7\textwidth]{exemplars}
+\caption{Plots of the exemplar genes from Table \ref{counts}, illustrating presence and absence of patterns of heterosis. The points are jittered horizontally and displayed on the scale of log counts per million. The uncertainty intervals shown are 90\% credible intervals from the fitted BNP model.}
+\label{exemplars}
+\end{figure}
+
+\citet{landau2016high} analyzed the same data using a hierachcical model assuming independent distributions for the gene-specific parameters
+
+Thresholding by $\mu_{12} - t > \max\left\{\mu_1,\mu_2\right\} \implies \beta_3+\beta_4 > |\beta_2|$
 
 \begin{figure}[h!]
 \centering
@@ -289,7 +347,7 @@ Hierarchical models have an important role in problems where, as is true in gene
 
 Our simulation studies show that the BNP model presented here provides a viable alternative to more standard methods. Intuitively, it performs substantially better than the alternative methods we considered in cases where the data are strongly suggestive of an underlying distribution that violates standard assumptions, particularly of independence.
 
-Additionally, while posterior sampling is cumbersome in the amount of memory involved (approximately 6 GB for 4,000 samples of $\beta$), the interpretability of posterior quantities of interest and the inferential flexibility allowed make a strong case in advocating for the use of the Bayesian approach.
+Additionally, while posterior sampling is cumbersome in the amount of memory involved (approximately 6 GB for 4,000 samples of $\beta$), the interpretability of posterior quantities of interest and the inferential flexibility allowed make a strong case for the use of the Bayesian approach.
 
 \section{Discussion}
 
