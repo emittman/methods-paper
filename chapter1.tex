@@ -156,7 +156,7 @@ p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
 Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. Different methods for normalization have been proposed. \citet{robinson2010} proposed a method called trimmed mean of M-values (TMM) to correct between-sample biases by compare observed log-fold-change values between samples for all genes. Under the assumption that most genes are not differentially expressed, they use a trimmed mean to robustly estimate the bias. When there are more than two samples, the same methodology is extended by using one sample as a reference. For details, see \citet{robinson2010}.
 
 \paragraph{Precision weights adjust for non-contant variance}
-Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(C_{gn})=\op{E}(C_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$). Because gene expression is usually measured on the log scale, consider the delta method  approximation for a negative binomial count in terms of the log-count: $\op{Var}(\log C_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g)=1/\mu_{gn} + \phi_g$. In other words, for a fixed $\phi>0$, a negative binoimal assumption assumes log-counts whose variance is a decreasing function of the mean, with asymptote at $\phi_g>0$. While this assumption may be adequate in some cases, empirical studies suggest that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with. 
+Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(C_{gn})=\op{E}(C_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$). Because gene expression is usually measured on the log scale, consider the delta method  approximation for a negative binomial count in terms of the log-count: $\op{Var}(\log C_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g\mu_{gn}^2)=1/\mu_{gn} + \phi_g$. In other words, for a fixed $\phi>0$, a negative binoimal assumption assumes log-counts whose variance is a decreasing function of the mean, with asymptote at $\phi_g>0$. Empirical evidence \citep{voom} suggests that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with. 
 
 \cite{voom} proposed \textit{voom}, a way to incorporate between-gene information about the mean-variance relationship in an RNA-seq data set through precision weighting of individual log-counts, making the data amenable to analysis with a linear model. It works by first calculating, for each gene, a sample standard deviation and mean log-count, and then fitting a LOWESS curve, treating the square root standard deviation as a response and the mean log-count as the predictor. Fitted values are then calculated for all counts, which are converted into precision weights. This leads to a different model for the variance, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. This is a somewhat different model, with $\sigma_g$ as a multiplicative term rather than additive, but this doesn't seem to be a critical issue. To use \texttt{voom} in our pipline requires both that we estimate $\op{Var}_{LOWESS}(\mu)$ and then plug in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
 
@@ -212,6 +212,8 @@ The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq 
 \nu_k ~ \op{Be}(M_k + 1, \sum_{l>k}M_l + \alpha).
 \end{equation*}
 
+Given $\alpha$ and $\zeta$, the $\nu_g$ are conditionally independent.
+
 Derivations of the full conditionals are given in Appendix \ref{full-conditionals}.
 
 \section{Simulation study 1}
@@ -235,21 +237,25 @@ We can compare the ranking given by \texttt{limma} to ones based on posterior pr
 % This suggests that our method, by ``learning" the underlying distribution of $\beta$, increases the ability to detect effects of practical significance.
 
 \begin{figure}[h!]
-\includegraphics[height=\textheight]{ss1-roc-auc}
+\centering
+\includegraphics[height=.8\textheight]{ss1-roc-auc}
+\caption{ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is made between BNP and \texttt{limma}.}
 \label{roc-ss1}
 \end{figure}
 
 We also compared the accuracy of point estimate under the two models. Here we expect BNP to do much better than \texttt{limma}. This is because \texttt{limma} produces point estimates for $\beta_g$ without any pooling, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller that those for \texttt{limma}.
 
 \begin{figure}[h!]
+\centering
 \includegraphics[width=.8\textwidth]{ss1-mspe}
+\caption{Mean squared prediction error for each effect for simulation study 1. Comparison is made between BNP and \texttt{limma}.}
 \label{mspe-ss1}
 \end{figure}
 
 \section{Simulation study 2}
 Much of the recent methods proposed for the analysis of RNA-seq data are based on an assumption that repeated sequencing of the same sample would produce Poisson distributed counts. For example, \cite{mccarthy} motivates the negative binomial model by showing that it has the right mean-variance relationship given the the above assumption and an assumption that the coefficient of variation is for constant within a gene. The favored approach is a negative binomial generalized linear model with log link function.
 
-To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts ($y_{gn}$) were exponentiated and rounded to obtain the simulated counts, $\tilde{y}_{gn}$. For each simulated data set, we analyzed the data using our BNP method and also with two popular count-based methods, DESeq2 and edgeR. For purposes of comparison, we considered accuracy of point estimation via mean squared prediction error and accuracy in identifying interesting genes using ROC curve.
+To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts ($y_{gn}$) were exponentiated and rounded to obtain the simulated counts, $\tilde{y}_{gn}$. For each simulated data set, we analyzed the data using our BNP method and also with two popular count-based methods, \texttt{DESeq2} and \texttt{edgeR} \citep{edger2010,deseq2014}. For purposes of comparison, we considered accuracy of point estimation via mean squared prediction error and accuracy in identifying interesting genes using ROC curve.
 % \begin{minipage}{.8\textwidth}
 \begin{enumerate}
 \item Sample 10,000 indices, $g$, from $\{1,2,\ldots,36,000\}$ without replacement.
@@ -263,19 +269,21 @@ To compare estimation and accuracy of gene selection with existing methods desig
 % Ranking accuracy (ROCs)
 Both \texttt{DESeq2} and \texttt{edgeR} provide threshold tests similar to TREAT in \texttt{limma}. We again used ROC to compare the accuracy in gene ranking between these three methods. For this simulation, unlike the first, the true parameters for each gene are unique. In general, the difference in performance was less noticable in this simulation. To get at a measure of overall performance, we calculated the area under the ROC curve (AUC) up to a false positive rate of 0.1. Comparing AUC across the ten simulations, we see that there were difference is rankings between the methods for different tests and thresholds. BNP appears to do at least as well as both \texttt{DESeq2} and \texttt{edgeR} under each condition, but it outshone both of them when identifying genes with a hybrid effect larger than a threshold. We expect that BNP is an improvement here because the parental half-difference is informative about the hybrid affect, and data are informative about that relationship which is captured in the posterior for $\mathcal{P}$. We discuss this further in Section \ref{analysis}. 
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
+\centering
 \includegraphics[height=.8\textheight]{ss2-roc-auc}
-\caption{\small ROCS.}
+\caption{\small ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is between BNP, \texttt{DESeq2} and \texttt{edgeR}.}
 \label{ss2-roc}
 \end{figure}
 
 % Mean squared prediction error
-For each simulation we computed the mean squared prediction error (MSPE) corresponding to each element of $\beta_g$, $\frac{1}{G}\sum_{g=1}^G (\hat{\beta}_g-\beta_g)^2$ for both methods. The results, shown in Figure \ref{ss2-mspe}, show that estimation with BNP is more accurate with respect to MSPE than DESeq2.
+For each simulation we computed the mean squared prediction error (MSPE) corresponding to each element of $\beta_g$, $\frac{1}{G}\sum_{g=1}^G (\hat{\beta}_g-\beta_g)^2$ for both methods. The results, shown in Figure \ref{ss2-mspe}, show the comparison between BNP is more accurate with respect to MSPE than both \texttt{DESeq2} and \texttt{edgeR}.
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
+\centering
 \includegraphics[width=.8\textwidth]{ss2-mspe}
 \begin{minipage}{.8\textwidth}
-\caption{\small Comparing the accuracy of estimation for BNP and DESeq2. Results show the average squared prediction error for 10 simulated data sets, grouped by function.}
+\caption{\small Comparing the accuracy of estimation for BNP, \texttt{DESeq2} and \texttt{edgeR}. Results show the average squared prediction error for 10 simulated data sets, grouped by function.}
 \end{minipage}
 \label{ss2-mspe}
 \end{figure}
@@ -298,7 +306,8 @@ low-parent Mo17xB73  & $\min\{\mbox{B73,Mo17}\} > \mbox{Mo17xB73}$ & $-|\beta_{g
 
 The ROC plots suggests that the posterior probabilites do a good job with ranking the genes. However, because they are interpretable as probabilites, we can still question their accuracy relative to the frequency of true positives. Figure \ref{calib-ss2} shows estimated calibration curves for the 10 simulation studies for a set of hypotheses that might be of interest to researchers. Each curve was produced by binning genes by binning genes with similar posterior probabilites and plotting relative frequency of ``true-positives" vs. the midpoint probability of the bin. Note that monotonicity is all that is needed to produce a good ROC. There appears to be a tendency for
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
+\centering
 \includegraphics[width=.8\textwidth]{calib-ss2}
 \caption{Curves describing calibration of posterior probabilities for simulation study 2.}
 \label{calib-ss2}
@@ -323,6 +332,7 @@ panel shows the corresponding estimates for our analysis overlayed on a posterio
 A result of this shrinkage is increased posterior precision. Figure \ref{exemplars} shows 90\% posterior credible intervals for the exemplar genes from Table \ref{counts}.
 
 \begin{figure}[ht!]
+\centering
 \includegraphics[width=.7\textwidth]{exemplars}
 \caption{Plots of the exemplar genes from Table \ref{counts}, illustrating presence and absence of patterns of heterosis. The points are jittered horizontally and displayed on the scale of log counts per million. The uncertainty intervals shown are 90\% credible intervals from the fitted BNP model.}
 \label{exemplars}
