@@ -1,5 +1,7 @@
+\iftoggle{thesis}{}{
 \newcommand{\op}{\operatorname}
 \newcommand{\ind}{\stackrel{ind.}{\sim}}
+}
 \section{Introduction}
 The statistical problem of comparing group in gene expression studies is an example of the $n \ll p$ paradigm. Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies. As the technology has developed, statistical methods to analyze the data these technologies produce has proliferated. A common element of such methods is the regularization of gene-specific analysis to decrease false detection rates and improve model accuracy. One way to acheive this is to employ appropriate hierarchical models. In this paper we present a nonparametric Bayesian hierarchical regression model, applicable to a large class of gene expression studies.
 %Because the presence of a meaningful biological effect fits awkwardly into the framework, we approach the problem of  addressed through estimation \citet{deseq2014}. This is the approach that we pursue here.
@@ -8,7 +10,8 @@ The statistical problem of comparing group in gene expression studies is an exam
 
 Because the data is expensive to collect, gene expression studies typically have fairly small sample sizes ($N \approx 10$). However, because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely. We use the term ``hierarchical model" to refer to models where some or all of the parameters involved in the data generation model are themselves modeled as random variables.
 % The advantages of such hierarchical models have been shown to work well in practice, regardless of whether the distributional form of the random effects restrict should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. 
-A rationale for hierarchical modeling in gene expression is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Largely for computational reasons, empirical Bayes methods have been preferred to fully Bayesian methods. One argument for their use is that when $G$ is large, $\mathcal{P}$ should be have low variance in the posterior, so that inference based on an estimate of $\mathcal{P}$ should be quite similar to a fully Bayesian analysis which integrates over the uncertainty in $\mathcal{P}$. The findings of Landau (2016) support this claim.
+
+A rationale for hierarchical modeling in gene expression is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Largely for computational reasons, empirical Bayes methods have been preferred to fully Bayesian methods. One argument for their use is that when $G$ is large, $\mathcal{P}$ should be have low variance in the posterior, so that inference based on an estimate of $\mathcal{P}$ should be quite similar to a fully Bayesian analysis which integrates over the uncertainty in $\mathcal{P}$. \citet{landau-thesis} ran a series of simulation studies lending support to this claim for a class of hierarchical models.
 
 Whether the method used is empirical Bayes or fully Bayesian, the use of hierarchical models in this area has led to critical improvements in estimation and testing. \citet{niemi} observed that the choice of parametric family can impact both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results; in contrast, misspecification of the distribution will limit both the accuracy and precision that can be obtained in estimation of the parameters.
 %The theory which supports these arguments assumes that the complexity of $\mathcal{P}$ can be described by a fixed number of parameters.
@@ -27,7 +30,7 @@ In the present article, we propose a Bayesian nonparametric model which extends 
 
 \section{RNA-seq gene expression data}
 \label{sec:data}
-The starting point for our analyses is an array of RNA-seq total aligned read counts measuring the abundance of a particular messenger RNA transcript in a sample. Such an array consists of $G$ rows and $N$ columns, corresponding to genes and samples, respectively. The abundance of a transcript is often referred to as gene expression; we will follow this convention here. For more details on data collection and preprocessing of RNA-seq data, please see Nettleton and Datta (2016).
+The starting point for our analyses is an array of RNA-seq total aligned read counts measuring the abundance of a particular messenger RNA transcript in a sample. Such an array consists of $G$ rows and $N$ columns, corresponding to genes and samples, respectively. The abundance of a transcript is often referred to as gene expression; we will follow this convention here. For more details on data collection and preprocessing of RNA-seq data, please see \citet{datta2014}.
 
 A simple analysis of RNA-seq data may be acheived by analyzing each gene independently. The experimental design can generally considered the same for all genes. Select rows for an example data set are shown below in Table \ref{counts}.
 
@@ -38,7 +41,7 @@ A simple analysis of RNA-seq data may be acheived by analyzing each gene indepen
 \begin{table}[ht]
 \centering
 \begin{minipage}{.8\textwidth}
-\caption{\small Selected rows from RNA-seq data set showing total aligned read counts for selected genes. Columns are grouped by genotype. Genes were selected as exemplars for different types of heterosis as defined in Section \ref{intro-paschold}. Plots of the data are shown in Figure \ref{exemplars}.}
+\caption{\small Selected rows from RNA-seq data set showing total aligned read counts for selected genes. Columns are grouped by genotype. Genes were selected as exemplars for different types of heterosis.}
 \label{counts}
 \end{minipage}
 \scalebox{0.7}{
@@ -63,7 +66,7 @@ Heterosis refers to the phenomenon whereby, a hybrid type, that is a genotype wh
 
 % The most interesting and useful form of heterosis, known as hybrid vigor, occurs when hybrid progeny display a mean phenotype that is superior to  both parental phenotypic means.  This heterosis phenomenon was scientifically documented in plants by \cite{darwin1876effects} and has long been used to improve agricultural production. One classic example involves hybrid maize offspring that are taller, faster to mature, and yield considerably more grain than their inbred parents \citep{hallauer1981quantitative, hallauer2010quantitative}.
 
-Having identified an objective for the analysis, we define some conventions to help with the statistical abstraction. For our purposes, we will say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. To be precise, we define multiple kinds of heterosis in terms of the mean expression levels of the genotypes. High-parent heterosis (HPH) occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis (LPH) occurs when the expected value of a hybrid is lower than that of both parents.
+Having identified an objective for the analysis, we define some conventions to help with the statistical abstraction. For our purposes, we will say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. To be precise, we define multiple kinds of heterosis in terms of the mean expression levels of the genotypes. High-parent heterosis (HPH) occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis (LPH) occurs when the expected value of a hybrid is lower than that of both parents. The first two genes (rows) in Table \ref{counts} are exemplars of HPH and LPH, respectively. The third gene appears that B73$\times$Mo17 displays LPH while Mo17$\times$B73 displays HPH, and in the last gene the hybrid expression appears to lie between that of the parents.
 
 \section{Bayesian nonparametric model}
 The advantage of hierarchical modeling generally is that that by assumming a distribution, $\mathcal{P}$, on some parameters $\theta_g$ and by allowing the parameters of $\mathcal{P}$ to be learned from the data, we can borrow information across groups to reduce our uncertainty about $\theta_g$. An implication of the misspecification of the distribution on the parameters can be that the utility of the hierarchical model is reduced; the information that the model is capable of borrowing is diminished.
@@ -239,7 +242,7 @@ We can compare the ranking given by \texttt{limma} to ones based on posterior pr
 \begin{figure}[h!]
 \centering
 \includegraphics[height=.8\textheight]{ss1-roc-auc}
-\caption{ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is made between BNP and \texttt{limma}.}
+\caption{ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is made between BNP and limma.}
 \label{roc-ss1}
 \end{figure}
 
@@ -248,7 +251,7 @@ We also compared the accuracy of point estimate under the two models. Here we ex
 \begin{figure}[h!]
 \centering
 \includegraphics[width=.8\textwidth]{ss1-mspe}
-\caption{Mean squared prediction error for each effect for simulation study 1. Comparison is made between BNP and \texttt{limma}.}
+\caption{Mean squared prediction error for each effect for simulation study 1. Comparison is made between BNP and limma.}
 \label{mspe-ss1}
 \end{figure}
 
@@ -272,7 +275,7 @@ Both \texttt{DESeq2} and \texttt{edgeR} provide threshold tests similar to TREAT
 \begin{figure}[ht!]
 \centering
 \includegraphics[height=.8\textheight]{ss2-roc-auc}
-\caption{\small ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is between BNP, \texttt{DESeq2} and \texttt{edgeR}.}
+\caption{\small ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is between BNP, DESeq2 and edgeR.}
 \label{ss2-roc}
 \end{figure}
 
@@ -283,7 +286,7 @@ For each simulation we computed the mean squared prediction error (MSPE) corresp
 \centering
 \includegraphics[width=.8\textwidth]{ss2-mspe}
 \begin{minipage}{.8\textwidth}
-\caption{\small Comparing the accuracy of estimation for BNP, \texttt{DESeq2} and \texttt{edgeR}. Results show the average squared prediction error for 10 simulated data sets, grouped by function.}
+\caption{\small Comparing the accuracy of estimation for BNP, DESeq2 and edgeR. Results show the average squared prediction error for 10 simulated data sets, grouped by function.}
 \end{minipage}
 \label{ss2-mspe}
 \end{figure}
@@ -322,7 +325,7 @@ In the original paper, a the results of a set of hypothesis tests was used to cl
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{orig-compare}
-\caption{Posterior probabilities for low- and high-parent gene heterosis hypotheses for subsets of genes classified as discoveries and non-discoveries in the original \citet{paschold} paper.}
+\caption{Posterior probabilities for low- and high-parent gene heterosis hypotheses for subsets of genes classified as discoveries and non-discoveries in the original article (Paschold et al. 2012).}
 \label{orig-compare}
 \end{figure}
 
@@ -338,17 +341,103 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 \label{exemplars}
 \end{figure}
 
-\citet{landau2016high} analyzed the same data using a hierachcical model assuming independent distributions for the gene-specific parameters
+\citet{landau2016high} undertook an analysis of the same data. They modeled the counts directly as Poisson, using a generalized linear model with log link and gene-specific linear predictors as well as a gene-specific overdispersion parameter. It is interesting to compare their results to ours as their method was also fully Bayesian. They assumed independence in the distribution of the linear predictors. Table \ref{bayes-compare} shows a comparison of the posterior probabilities obtained by our method and ours binned into four equally sized intervals for the four types of extreme gene heterosis discussed earlier in this section. While there is a fair amount of agreement between these two methods on the genes with highest and lowest probabilities of heterosis, the differences between the inferences are considerable.
 
-Thresholding by $\mu_{12} - t > \max\left\{\mu_1,\mu_2\right\} \implies \beta_3+\beta_4 > |\beta_2|$
+We can see that BNP assigns low probabilities ($< 0.25$) to more genes for every type of heterosis. For LPH, BNP tends toward lower probabilites than found in \citet{landau2016high}. In the case of HPH, BNP estimates more genes with high probabilities of heterosis ($>0.75$) than Landau. Somewhat curiously, there seem to be more probabilities in the second column than would be consistent with the surrounding cells. It was stated in \citet{landau2016high} that this is likely an artifact of the hierarchical model in the presence of null genes.
+
+While these results are somewhat ambiguous --- we do not know which model is more correct --- these tables highlight the impact that distributional assumptions can have on the inferences we obtain.
+
+\iftoggle{thesis}{
+  Because of the large number of genes, there were memory storage issues related to how many samples were actually stored when running our chains. This presented a trade-off: thinning reduces the effective number of samples, so it is generally something we want to avoid. One potential solution is to approximate distributions of interest by their first and second moments. Computation of these moments requires minimal storage, as running means can be used to update these after each iteration of the MCMC chain.
+  
+Figure \ref{compare-cis} shows full posterior distributions for  $\beta_g$ for a random sample of four genes and contrasts that with a normal approximation matching the first and second posterior moments. The quality of the moment-based approximation varies from gene to gene. In first two rows, we see that, the normal approximation is not very accurate due to the multimodal posterior. On the other hand, it is fairly accurate in the last two rows. Notably, the accuracy seems to be associated with the intercept paramters, meaning that when the overall expression level is higher, the moment-based approximation is more satisfactory. The lack of agreement for the genes with lower expression can be understood if we consider that  the ambiguity at lower expression levels leads to increased shrinkage. Due to the complexity in shrinkage distribution, this shrinkage can be directed in more than one direction, leading to the multimodality that we see. On the other hand, as expression levels increase, the ability to distiguish one gene from another increases, leading to smoother posterior distributions.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{sample_genes_cis}
+\caption{Posterior distributions for a random subset of genes.}
+\includegraphics[width=\textwidth]{sample_genes_expression}
+\caption{Corresponding estimates for the log-mean expression levels for each component of $\beta_g$.}
+\label{compare-cis}
+\end{figure}
+}
+
+
+% latex table generated in R 3.4.2 by xtable 1.8-2 package
+% Tue Nov 14 21:58:47 2017
+\begin{table}[ht]
+\footnotesize
+\centering
+\caption{Two-way tables comparing the posterior probabilities of different types of gene heterosis for all genes in the Paschold (2012) data set produced by BNP and Landau (2016).}
+\label{bayes-compare}
+\begin{tabular}{rrrrrr}
+&  &\multicolumn{4}{c}{Landau}\\
+  \toprule
+& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
+  \midrule
+\multirow{4}{*}{BNP} & [0,0.25] & 20435 & 5499 & 1687 & 702 \\ 
+  & (0.25,0.5] & 1299 & 1978 & 930 & 550 \\ 
+  & (0.5,0.75] & 446 & 1115 & 486 & 509 \\ 
+  & (0.75,1] & 148 & 287 & 167 & 583 \\ 
+   \bottomrule
+\end{tabular}
+\\[.5cm]
+Low-parent heterosis B73$\times$Mo17.
+\\[.75cm]
+
+\begin{tabular}{rrrrrr}
+&  &\multicolumn{4}{c}{Landau}\\
+  \toprule
+& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
+  \hline
+\multirow{4}{*}{BNP} & [0,0.25] & 21486 & 4557 & 1486 & 677 \\
+ &  (0.25,0.5] & 1639 & 2155 & 611 & 306 \\ 
+ &  (0.5,0.75] & 301 & 989 & 522 & 390 \\ 
+ &  (0.75,1] & 140 & 677 & 197 & 688 \\ 
+   \bottomrule
+\end{tabular}
+\\[.5cm]
+Low-parent heterosis Mo17$\times$B73.
+\\[.75cm]
+
+\begin{tabular}{rrrrrr}
+&  &\multicolumn{4}{c}{Landau}\\
+  \toprule
+& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
+  \hline
+\multirow{4}{*}{BNP} & [0,0.25] & 27595 & 4359 & 784 & 158 \\ 
+  & (0.25,0.5] & 1029 & 741 & 306 & 105 \\ 
+  & (0.5,0.75] & 287 & 273 & 160 & 115 \\ 
+  & (0.75,1] &  83 & 529 & 107 & 190 \\ 
+   \bottomrule
+\end{tabular}
+\\[.5cm]
+High-parent heterosis B73$\times$Mo17.
+
+\begin{tabular}{rrrrrr}
+&  &\multicolumn{4}{c}{Landau}\\
+  \toprule
+& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
+  \hline
+\multirow{4}{*}{BNP} & [0,0.25] & 25648 & 4626 & 816 & 154 \\ 
+  & (0.25,0.5] & 1428 & 754 & 382 & 158 \\ 
+  & (0.5,0.75] & 633 & 500 & 282 & 184 \\ 
+  & (0.75,1] & 207 & 604 & 188 & 257 \\ 
+   \hline
+\end{tabular}
+\\[.5cm]
+High-parent heterosis Mo17$\times$B73.
+\end{table}
+
+
+% Thresholding by $\mu_{12} - t > \max\left\{\mu_1,\mu_2\right\} \implies \beta_3+\beta_4 > |\beta_2|$
 
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{heterosis-shrinkage}
-\begin{minipage}{.8\textwidth}
-\caption{\small The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect for genes classified as heterotic in \citet{paschold} overlayed on a bivariate histogram of the independent estimates for all genes. The right
+% \begin{minipage}{.8\textwidth}
+\caption{\small The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect for genes classified as heterotic in Paschold et al. (2012) overlayed on a bivariate histogram of the independent estimates for all genes. The right
 panel shows the corresponding estimates for our analysis overlayed on a posterior pointwise estimate of $\mathcal{P}$. In this second plot we can see significant shrinkage toward the regions where $\mathcal{P}$ puts more probability in the posterior.}
-\end{minipage}
+% \end{minipage}
 \label{het-shrink}
 \end{figure}
 
