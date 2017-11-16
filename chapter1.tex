@@ -1,7 +1,3 @@
-\iftoggle{thesis}{}{
-\newcommand{\op}{\operatorname}
-\newcommand{\ind}{\stackrel{ind.}{\sim}}
-}
 \section{Introduction}
 The statistical problem of comparing group in gene expression studies is an example of the $n \ll p$ paradigm. Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies. As the technology has developed, statistical methods to analyze the data these technologies produce has proliferated. A common element of such methods is the regularization of gene-specific analysis to decrease false detection rates and improve model accuracy. One way to acheive this is to employ appropriate hierarchical models. In this paper we present a nonparametric Bayesian hierarchical regression model, applicable to a large class of gene expression studies.
 %Because the presence of a meaningful biological effect fits awkwardly into the framework, we approach the problem of  addressed through estimation \citet{deseq2014}. This is the approach that we pursue here.
@@ -343,90 +339,141 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 
 \citet{landau2016high} undertook an analysis of the same data. They modeled the counts directly as Poisson, using a generalized linear model with log link and gene-specific linear predictors as well as a gene-specific overdispersion parameter. It is interesting to compare their results to ours as their method was also fully Bayesian. They assumed independence in the distribution of the linear predictors. Table \ref{bayes-compare} shows a comparison of the posterior probabilities obtained by our method and ours binned into four equally sized intervals for the four types of extreme gene heterosis discussed earlier in this section. While there is a fair amount of agreement between these two methods on the genes with highest and lowest probabilities of heterosis, the differences between the inferences are considerable.
 
-We can see that BNP assigns low probabilities ($< 0.25$) to more genes for every type of heterosis. For LPH, BNP tends toward lower probabilites than found in \citet{landau2016high}. In the case of HPH, BNP estimates more genes with high probabilities of heterosis ($>0.75$) than Landau. Somewhat curiously, there seem to be more probabilities in the second column than would be consistent with the surrounding cells. It was stated in \citet{landau2016high} that this is likely an artifact of the hierarchical model in the presence of null genes.
-
-While these results are somewhat ambiguous --- we do not know which model is more correct --- these tables highlight the impact that distributional assumptions can have on the inferences we obtain.
-
-\iftoggle{thesis}{
-  Because of the large number of genes, there were memory storage issues related to how many samples were actually stored when running our chains. This presented a trade-off: thinning reduces the effective number of samples, so it is generally something we want to avoid. One potential solution is to approximate distributions of interest by their first and second moments. Computation of these moments requires minimal storage, as running means can be used to update these after each iteration of the MCMC chain.
-  
-Figure \ref{compare-cis} shows full posterior distributions for  $\beta_g$ for a random sample of four genes and contrasts that with a normal approximation matching the first and second posterior moments. The quality of the moment-based approximation varies from gene to gene. In first two rows, we see that, the normal approximation is not very accurate due to the multimodal posterior. On the other hand, it is fairly accurate in the last two rows. Notably, the accuracy seems to be associated with the intercept paramters, meaning that when the overall expression level is higher, the moment-based approximation is more satisfactory. The lack of agreement for the genes with lower expression can be understood if we consider that  the ambiguity at lower expression levels leads to increased shrinkage. Due to the complexity in shrinkage distribution, this shrinkage can be directed in more than one direction, leading to the multimodality that we see. On the other hand, as expression levels increase, the ability to distiguish one gene from another increases, leading to smoother posterior distributions.
-
-\begin{figure}
-\includegraphics[width=\textwidth]{sample_genes_cis}
-\caption{Posterior distributions for a random subset of genes.}
-\includegraphics[width=\textwidth]{sample_genes_expression}
-\caption{Corresponding estimates for the log-mean expression levels for each component of $\beta_g$.}
-\label{compare-cis}
-\end{figure}
-}
-
-
 % latex table generated in R 3.4.2 by xtable 1.8-2 package
 % Tue Nov 14 21:58:47 2017
 \begin{table}[ht]
 \footnotesize
 \centering
-\caption{Two-way tables comparing the posterior probabilities of different types of gene heterosis for all genes in the Paschold (2012) data set produced by BNP and Landau (2016).}
-\label{bayes-compare}
-\begin{tabular}{rrrrrr}
-&  &\multicolumn{4}{c}{Landau}\\
+\caption{Two-way tables comparing the posterior probabilities of low-parent gene heterosis for all genes in the Paschold (2012) data set found by BNP and Landau (2016).}
+\label{bayes-compare1}
+% \begin{tabular}{rrrrrr}
+% &  &\multicolumn{4}{c}{Landau}\\
+%   \toprule
+% & & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] & total\\ 
+%   \midrule
+% \multirow{4}{*}{BNP} & [0,0.25] & 20435 & 5499 & 1687 & 702 \\ 
+%   & (0.25,0.5] & 1299 & 1978 & 930 & 550 \\ 
+%   & (0.5,0.75] & 446 & 1115 & 486 & 509 \\ 
+%   & (0.75,1] & 148 & 287 & 167 & 583 \\ 
+%   & total
+%    \bottomrule
+\begin{tabular}{rrrrrrr|r}
+&  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
   \midrule
-\multirow{4}{*}{BNP} & [0,0.25] & 20435 & 5499 & 1687 & 702 \\ 
-  & (0.25,0.5] & 1299 & 1978 & 930 & 550 \\ 
-  & (0.5,0.75] & 446 & 1115 & 486 & 509 \\ 
-  & (0.75,1] & 148 & 287 & 167 & 583 \\ 
+\multirow{6}{*}{BNP} & [0,0.05]    & 0.283 & 0.083 & 0.116 & 0.001 & 0.000 & 0.483 \\
+                     & (0.05,0.15] & 0.017 & 0.037 & 0.129 & 0.003 & 0.001 & 0.186 \\ 
+                     & (0.15,0.85] & 0.009 & 0.025 & 0.254 & 0.017 & 0.009 & 0.313 \\ 
+                     & (0.85,0.95] & 0.000 & 0.000 & 0.007 & 0.002 & 0.002 & 0.011 \\ 
+                     & (0.95,1]    & 0.000 & 0.000 & 0.003 & 0.001 & 0.003 & 0.007 \\
+                     \midrule
+                     & total       & 0.308 & 0.145 & 0.508 & 0.022 & 0.016 & 1.000 \\ 
    \bottomrule
 \end{tabular}
 \\[.5cm]
 Low-parent heterosis B73$\times$Mo17.
 \\[.75cm]
 
-\begin{tabular}{rrrrrr}
-&  &\multicolumn{4}{c}{Landau}\\
+% \begin{tabular}{rrrrrr}
+% &  &\multicolumn{4}{c}{Landau}\\
+%   \toprule
+% & & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
+%   \hline
+% \multirow{4}{*}{BNP} & [0,0.25] & 21486 & 4557 & 1486 & 677 \\
+%  &  (0.25,0.5] & 1639 & 2155 & 611 & 306 \\ 
+%  &  (0.5,0.75] & 301 & 989 & 522 & 390 \\ 
+%  &  (0.75,1] & 140 & 677 & 197 & 688 \\ 
+%    \bottomrule
+   \begin{tabular}{rrrrrrr|r}
+&  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
-  \hline
-\multirow{4}{*}{BNP} & [0,0.25] & 21486 & 4557 & 1486 & 677 \\
- &  (0.25,0.5] & 1639 & 2155 & 611 & 306 \\ 
- &  (0.5,0.75] & 301 & 989 & 522 & 390 \\ 
- &  (0.75,1] & 140 & 677 & 197 & 688 \\ 
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
+  \midrule
+\multirow{6}{*}{BNP} & [0,0.05] & 0.296 & 0.090 & 0.135 & 0.003 & 0.001 & 0.523 \\ 
+                     & (0.05,0.15] & 0.021 & 0.036 & 0.093 & 0.002 & 0.001 & 0.152 \\ 
+                     & (0.15,0.85] & 0.010 & 0.031 & 0.237 & 0.011 & 0.005 & 0.295 \\ 
+                     & (0.85,0.95] & 0.000 & 0.000 & 0.015 & 0.002 & 0.003 & 0.021 \\ 
+                     & (0.95,1] & 0.000 & 0.000 & 0.003 & 0.002 & 0.005 & 0.010 \\
+                     \midrule
+                     & total & 0.327 & 0.157 & 0.483 & 0.020 & 0.014 & 1.000 \\ 
    \bottomrule
 \end{tabular}
 \\[.5cm]
 Low-parent heterosis Mo17$\times$B73.
-\\[.75cm]
+\end{table}
 
-\begin{tabular}{rrrrrr}
-&  &\multicolumn{4}{c}{Landau}\\
+\begin{table}[ht]
+\footnotesize
+\centering
+\caption{Two-way tables comparing the posterior probabilities of high-parent heterosis for all genes in the Paschold (2012) data set found by BNP and Landau (2016).}
+\label{bayes-compare2}
+   \begin{tabular}{rrrrrrr|r}
+&  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
-  \hline
-\multirow{4}{*}{BNP} & [0,0.25] & 27595 & 4359 & 784 & 158 \\ 
-  & (0.25,0.5] & 1029 & 741 & 306 & 105 \\ 
-  & (0.5,0.75] & 287 & 273 & 160 & 115 \\ 
-  & (0.75,1] &  83 & 529 & 107 & 190 \\ 
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
+  \midrule
+\multirow{6}{*}{BNP} & [0,0.05] & 0.395 & 0.126 & 0.155 & 0.000 & 0.000 & 0.676 \\ 
+                     & (0.05,0.15] & 0.037 & 0.037 & 0.085 & 0.000 & 0.000 & 0.159 \\ 
+                     & (0.15,0.85] & 0.020 & 0.025 & 0.100 & 0.003 & 0.001 & 0.149 \\ 
+                     & (0.85,0.95] & 0.000 & 0.000 & 0.011 & 0.001 & 0.001 & 0.012 \\ 
+                     & (0.95,1] & 0.000 & 0.000 & 0.003 & 0.001 & 0.001 & 0.005 \\
+                     \midrule
+                     & total & 0.452 & 0.187 & 0.353 & 0.005 & 0.002 & 1.000 \\ 
    \bottomrule
 \end{tabular}
 \\[.5cm]
 High-parent heterosis B73$\times$Mo17.
+\\[.75cm]
 
-\begin{tabular}{rrrrrr}
-&  &\multicolumn{4}{c}{Landau}\\
+\begin{tabular}{rrrrrrr|r}
+&  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-& & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
-  \hline
-\multirow{4}{*}{BNP} & [0,0.25] & 25648 & 4626 & 816 & 154 \\ 
-  & (0.25,0.5] & 1428 & 754 & 382 & 158 \\ 
-  & (0.5,0.75] & 633 & 500 & 282 & 184 \\ 
-  & (0.75,1] & 207 & 604 & 188 & 257 \\ 
-   \hline
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
+  \midrule
+\multirow{6}{*}{BNP} & [0,0.05] & 0.352 & 0.115 & 0.165 & 0.000 & 0.000 & 0.633 \\ 
+                     & (0.05,0.15] & 0.035 & 0.032 & 0.087 & 0.000 & 0.000 & 0.155 \\ 
+                     & (0.15,0.85] & 0.033 & 0.035 & 0.116 & 0.005 & 0.002 & 0.190 \\ 
+                     & (0.85,0.95] & 0.001 & 0.001 & 0.014 & 0.001 & 0.001 & 0.017 \\ 
+                     & (0.95,1] & 0.000 & 0.000 & 0.003 & 0.001 & 0.001 & 0.005 \\
+                     \midrule
+                     & total & 0.421 & 0.183 & 0.386 & 0.007 & 0.003 & 1.000 \\ 
+   \bottomrule
 \end{tabular}
 \\[.5cm]
 High-parent heterosis Mo17$\times$B73.
 \end{table}
+
+
+From the marginal distributions of probabilities, we see that BNP finds lower chances of LPH across genes than Landau. For example, Landau found 1.6\% of genes to have greater than 95\% probability of low-parent heterosis for B73$\times$Mo17, but the majority of these were given less than 85\% probability by BNP. However, BNP also found higher probabilities for some genes: More than 1/3 of the 0.7\% genes which BNP found to be high probablity genes ($>$95\%) were found to only have moderate probabilities (15\%-85\%). The story is different for HPH. Here, BNP has greater confidence, finding both more high- and low-probability genes than Landau.
+
+While we cannot say from these comparisons whether one model is better than another, they serve to highlight the impact that distributional assumptions can have in detecting patterns of gene expression. Given our belief that models like that of \citet{Landau} and \cite{deseq2014} make unreasonable assumptions about the distribution of the gene-specific parameters, we expect that the BNP probabilites incorporate more information about the broader patterns of expression exhibited in the data.
+
+\iftoggle{thesis}{
+On a different note, \citet{landau2016high} found that when an independent normal model was assumed for $\beta_{gl}$, their posterior distributions were well approximated by a normal distribution matching the first two posterior moments. This is convenient because computation of these moments requires minimal storage, as running means can be used to update these after each iteration of the MCMC chain.
+  
+Figure \ref{compare-to-approx} shows full posterior distributions and normal approximations for each component of $\beta_g$ for four randomly selected genes. The quality of the moment-based approximation is satisfactory in some cases but not in others. Due to the discrepencies displayed here, we would recommend basing inference on the full posterior, rather than a normal approximation. In our experience, multimodality in posterior plots such as Figure \ref{compre-to-approx} can be suggestive that the MCMC has not converged. However, the traceplots for these parameters (Figure \ref{mixing}) do not indicate this to be the case; rather, we suspect this is a feature of the nonparametric model. For reference, the data and estimated mean expression levels are displayed in Figure \ref{compare-cis}.
+%figures for 4 random genes
+\begin{figure}
+\includegraphics[width=\textwidth]{sample_genes_cis}
+\caption{Posterior distributions for a random subset of genes.}
+\label{compare-to-approx}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=.8\textwidth]{sample_genes_trace}
+\caption{Traceplots for $\beta$ in sample genes.}
+\label{mixing}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=.7\textwidth]{sample_genes_mean}
+\caption{Corresponding estimates for the log-mean expression levels for each component of $\beta_g$.}
+\label{compare-cis}
+\end{figure}
+}
+
+
 
 
 % Thresholding by $\mu_{12} - t > \max\left\{\mu_1,\mu_2\right\} \implies \beta_3+\beta_4 > |\beta_2|$
@@ -441,14 +488,12 @@ panel shows the corresponding estimates for our analysis overlayed on a posterio
 \label{het-shrink}
 \end{figure}
 
-\section{Conclusions}
+\section{Discussion}
 Hierarchical models have an important role in problems where, as is true in gene expression, the number of model parameters is much larger than the number of subjects. By modeling the parameters, we use the ``between-gene" information in the data to moderate our inferences about individual genes . The use of hierarchical models for gene expression analyses is standard. Empirical evidence suggests, however, that model assumptions often made about the distribution of the gene-specific parameters are not realistic --- rather, the empirical distributions can exhibit complex shapes. However, it seems difficult to suggest a parametric alternative to the common default assumptions (independence, normality.) We have demonstrated a computationally demanding, yet feasible, alternative: a Dirichlet process prior on this unknown distribution.
 
 Our simulation studies show that the BNP model presented here provides a viable alternative to more standard methods. Intuitively, it performs substantially better than the alternative methods we considered in cases where the data are strongly suggestive of an underlying distribution that violates standard assumptions, particularly of independence.
 
 Additionally, while posterior sampling is cumbersome in the amount of memory involved (approximately 6 GB for 4,000 samples of $\beta$), the interpretability of posterior quantities of interest and the inferential flexibility allowed make a strong case for the use of the Bayesian approach.
-
-\section{Discussion}
 
 We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the affect of the recessesive allele in the heterozygous maize plant.
 
