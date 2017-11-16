@@ -15,8 +15,11 @@ p1 <- filter(consolidated,threshold<.8, threshold>0, sim==ssss, type != "voom-li
   # ddply(.(threshold,p,type,FPR), summarise, TPR=mean(TPR)) %>%
   ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + geom_line() + 
   facet_grid(threshold~p, scales = "free")+theme_bw(base_size=14)+
-  theme(legend.position = c(.92,.1),
-        legend.margin = margin(-10,-10,-10,-10,unit="pt"))
+  theme(legend.position = c(.9,.14),
+        legend.margin = margin(-10,-10,-10,-10,unit="pt"),
+        legend.text = element_text(size=8),
+        legend.title = element_text(size=10))
+p1 <- p1 + theme(axis.text.x = element_text(angle = 90, vjust =.5))
 aucs <- arrange(consolidated, sim, threshold, p, type, FPR) %>%
   filter(FPR < .1, type!="voom-limma") %>%
   ddply(.(sim, threshold, p, type), function(x){
@@ -28,7 +31,9 @@ aucs <- arrange(consolidated, sim, threshold, p, type, FPR) %>%
 p2 <- filter(aucs, threshold>0,threshold<.8)%>%#, p %in% c("parental HD","hybrid","hybrid HD")) %>%
   ggplot(aes(x=type, y=AUC)) + geom_boxplot(aes(color=type)) +
   geom_line(aes(group=sim), alpha=.5) + facet_grid(threshold~p) +
-  theme_bw(base_size=14)+xlab("")+theme(legend.position = "none")
+  theme_bw(base_size=14)+xlab("")+
+  theme(legend.position = "none",
+  axis.text.x = element_text(angle = 90, vjust = .5))
 
 library(cowplot)
 plot_grid(p1,p2,ncol=1)

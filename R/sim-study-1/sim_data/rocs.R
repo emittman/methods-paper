@@ -70,7 +70,7 @@ p1 <- filter(consolidated,threshold<.8, threshold>0, sim==ssss) %>%#,p %in% c("p
     facet_grid(threshold~p, scales = "free")+theme_bw(base_size=14)+
   theme(legend.position = c(.1,.9),
         legend.margin = margin(-10,-10,-10,-10,unit="pt"))
-p1
+p1 <- p1 + theme(axis.text.x = element_text(angle = 90, vjust=.5))
 #AUC
 aucs <- arrange(consolidated, sim, threshold, p, type, FPR) %>%
   filter(FPR < .1) %>%
