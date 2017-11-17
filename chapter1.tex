@@ -7,7 +7,7 @@ The statistical problem of comparing group in gene expression studies is an exam
 Because the data is expensive to collect, gene expression studies typically have fairly small sample sizes ($N \approx 10$). However, because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely. We use the term ``hierarchical model" to refer to models where some or all of the parameters involved in the data generation model are themselves modeled as random variables.
 % The advantages of such hierarchical models have been shown to work well in practice, regardless of whether the distributional form of the random effects restrict should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. 
 
-A rationale for hierarchical modeling in gene expression is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Largely for computational reasons, empirical Bayes methods have been preferred to fully Bayesian methods. One argument for their use is that when $G$ is large, $\mathcal{P}$ should be have low variance in the posterior, so that inference based on an estimate of $\mathcal{P}$ should be quite similar to a fully Bayesian analysis which integrates over the uncertainty in $\mathcal{P}$. \citet{landau-thesis} ran a series of simulation studies lending support to this claim for a class of hierarchical models.
+A rationale for hierarchical modeling in gene expression is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Largely for computational reasons, empirical Bayes methods have been preferred to fully Bayesian methods. One argument for their use is that when $G$ is large, $\mathcal{P}$ should be have low variance in the posterior, so that inference based on an estimate of $\mathcal{P}$ should be quite similar to a fully Bayesian analysis which integrates over the uncertainty in $\mathcal{P}$. \citet{landau2016high} ran a series of simulation studies lending support to this claim for a class of hierarchical models.
 
 Whether the method used is empirical Bayes or fully Bayesian, the use of hierarchical models in this area has led to critical improvements in estimation and testing. \citet{niemi} observed that the choice of parametric family can impact both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results; in contrast, misspecification of the distribution will limit both the accuracy and precision that can be obtained in estimation of the parameters.
 %The theory which supports these arguments assumes that the complexity of $\mathcal{P}$ can be described by a fixed number of parameters.
@@ -43,17 +43,17 @@ A simple analysis of RNA-seq data may be acheived by analyzing each gene indepen
 \scalebox{0.7}{
 \begin{tabular}{l|rrrr|rrrr|rrrr|rrrr}
   \toprule
-\multicolumn{1}{c}{type of heterosis} &  \multicolumn{4}{c}{B73} & \multicolumn{4}{c}{B73xMo17} & \multicolumn{4}{c}{Mo17xB73}& \multicolumn{4}{c}{Mo17}  \\ 
+\multicolumn{1}{c}{type of heterosis} &  \multicolumn{4}{c}{B73} & \multicolumn{4}{c}{B73xMo17} & \multicolumn{4}{c}{Mo17xB73}& \multicolumn{4}{c}{Mo17}  \\
   \midrule
-HPH & 1431 & 1199 & 1235 & 1569 & 2055 & 1652 & 2149 & 2168 & 2415 & 1815 & 2142 & 2369 & 1127 & 987 & 1672 & 1518 \\ 
-  LPH &  86 &  62 & 131 & 128 &  52 &  43 &  85 &  95 &  60 &  23 &  63 &  74 &  85 &  71 & 178 & 205 \\ 
-  mixed & 122 &  98 & 146 & 150 &  73 &  77 & 159 & 127 & 178 & 122 & 259 & 252 & 108 & 103 & 207 & 171 \\ 
-  neither &  30 &  31 &  42 &  48 &  17 &  15 &  22 &  26 &  16 &  13 &  16 &  22 &   2 &   2 &   2 &   2 \\ 
+HPH & 1431 & 1199 & 1235 & 1569 & 2055 & 1652 & 2149 & 2168 & 2415 & 1815 & 2142 & 2369 & 1127 & 987 & 1672 & 1518 \\
+  LPH &  86 &  62 & 131 & 128 &  52 &  43 &  85 &  95 &  60 &  23 &  63 &  74 &  85 &  71 & 178 & 205 \\
+  mixed & 122 &  98 & 146 & 150 &  73 &  77 & 159 & 127 & 178 & 122 & 259 & 252 & 108 & 103 & 207 & 171 \\
+  neither &  30 &  31 &  42 &  48 &  17 &  15 &  22 &  26 &  16 &  13 &  16 &  22 &   2 &   2 &   2 &   2 \\
    \bottomrule
 \end{tabular}
 }
 \end{table}
-
+% 
 \subsection{Maize data of Paschold et al.}
 \label{intro-paschold}
 We use as a motivating example a maize data set due to \citep{paschold}. These RNA-seq data consist of total aligned read counts for two parental lines, B73 and Mo17, and the reciprocal hybrid genotypes, B73$\times$Mo17 and Mo17$\times$B73, for 39,656 genes. Of these, 2835 genes were excluded because all counts were exactly zero. Each genotype had four biological replicates measured with Illumina methodology and equipment. Reads were mapped to the whole reference genome using the short reads aligner, NOVOALIGN. For more specifics, please see \cite{paschold}. The purpose of their experiment was to identify genes that play a role in the phenomenon known as heterosis, or hybrid vigor.
@@ -113,17 +113,17 @@ The implication is that $\mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\til
 
 The stick-breaking representation of the DP makes clear the role of $Q$: it serves as a kind of proposal distribution for the atoms, $\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)$. We choose $Q$ to be a product measure on the atoms given by
 % \iftoggle{thesis}{
-% The use of this prior, due to \citet{ferguson}, is a distribution over probability distributions, such that for any finite disjoint partition $\{A_i\}_{i>=1}^n$ on $\mathbb{R}^p$, $\mathcal{P}$ is a random measure such that the joint distribution $\left(\mathcal{P}(A_1),\ldots,\mathcal{P}(A_n)\right) \sim \op{Dir}\left(\alpha Q(A_1),\ldots,\alpha Q(A_n)\right).$ The Dirichlet process has two parameters: $Q$, the base measure, represents a prior guess at the distribution. $\alpha$, the concentration parameter expresses the degree to which $\mathcal{P}$ will agree with $Q$ on any set $A$. This follows from the definition given above and known properties of the Dirichlet distribution, i.e., $\op{E}\left(\mathcal{P}(A)\right)=Q(A)$, and $\op{V}\left(\mathcal{P}(A)\right)=\frac{Q(A)(1 - Q(A)}{\alpha + 1}$, showing that $\mathcal{P}(A) \stackrel{p}{\rightarrow} Q(A)$ as $\alpha \rightarrow \infty$ for any set $A$. 
+% The use of this prior, due to \citet{ferguson}, is a distribution over probability distributions, such that for any finite disjoint partition $\{A_i\}_{i>=1}^n$ on $\mathbb{R}^p$, $\mathcal{P}$ is a random measure such that the joint distribution $\left(\mathcal{P}(A_1),\ldots,\mathcal{P}(A_n)\right) \sim \op{Dir}\left(\alpha Q(A_1),\ldots,\alpha Q(A_n)\right).$ The Dirichlet process has two parameters: $Q$, the base measure, represents a prior guess at the distribution. $\alpha$, the concentration parameter expresses the degree to which $\mathcal{P}$ will agree with $Q$ on any set $A$. This follows from the definition given above and known properties of the Dirichlet distribution, i.e., $\op{E}\left(\mathcal{P}(A)\right)=Q(A)$, and $\op{V}\left(\mathcal{P}(A)\right)=\frac{Q(A)(1 - Q(A)}{\alpha + 1}$, showing that $\mathcal{P}(A) \stackrel{p}{\rightarrow} Q(A)$ as $\alpha \rightarrow \infty$ for any set $A$.
 % }{}
 % By modeling $\mathcal{P}$ with a Dirichlet process one can be noninformative about the overall shape of $\mathcal{P}$, allowing for irregular shapes, multimodality, and so forth. An argument can be made that by incorporating our uncertainty about these features of the distribution is required for coherent interpretation of the posterior distribution \citep{walker2010bayesian}. For more information about the properties of the DP, see \cite{ferguson}.
-% 
+%
 % As shown by \citet{sethuraman}, it follows from the definition of the Dirichlet process that $\mathcal{P}$ is almost surely discrete and realizations of $\mathcal{P}$ can be produced by the following stick-breaking construction:
-% 
-% Let 
+%
+% Let
 % \begin{equation}
 % \mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)}.
 % \end{equation}
-% Here $\delta_{(.)}$ is the Dirac delta function. Note that although almost sure discreteness is a property applicable to ``draws'' from a DP, the posterior for $\mathcal{P}$ is in fact a mixture of DP \citep{antoniak}. An implication of discretness can be thought of as a ``bet on sparsity"; that there are actually a finite (but unspecified) number of unique values that $(\beta_g^\top,\sigma^2_g)$ can take.  
+% Here $\delta_{(.)}$ is the Dirac delta function. Note that although almost sure discreteness is a property applicable to ``draws'' from a DP, the posterior for $\mathcal{P}$ is in fact a mixture of DP \citep{antoniak}. An implication of discretness can be thought of as a ``bet on sparsity"; that there are actually a finite (but unspecified) number of unique values that $(\beta_g^\top,\sigma^2_g)$ can take.
 %  The ``atoms" distributed according to $Q$, specified by the product measure
 
 \begin{equation}
@@ -137,16 +137,16 @@ p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
 
 
 % The mixture weights, $\pi_k$,  follow a stick-breaking process \cite{sethuraman}. Using the reparameterization,
-% 
+%
 % \begin{equation}
 % \nu_k = \frac{\pi_k}{1 - \sum_{l=1}^{k-1} \pi_l},
 % \end{equation}
-% 
+%
 % $\nu_k$ representing a proportion of the total probability remaining after $k-1$ breaks. For the stick-breaking construction of the DP, the $\nu_k$ are modeled by:
 % \begin{equation}
 % \nu_k \ind \op{Beta}(1, \alpha).
 % \end{equation}
-% 
+%
 % This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$.
 
 \subsection{Normalization and weighting}
@@ -155,12 +155,12 @@ p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
 Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. Different methods for normalization have been proposed. \citet{robinson2010} proposed a method called trimmed mean of M-values (TMM) to correct between-sample biases by compare observed log-fold-change values between samples for all genes. Under the assumption that most genes are not differentially expressed, they use a trimmed mean to robustly estimate the bias. When there are more than two samples, the same methodology is extended by using one sample as a reference. For details, see \citet{robinson2010}.
 
 \paragraph{Precision weights adjust for non-contant variance}
-Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(C_{gn})=\op{E}(C_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$). Because gene expression is usually measured on the log scale, consider the delta method  approximation for a negative binomial count in terms of the log-count: $\op{Var}(\log C_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g\mu_{gn}^2)=1/\mu_{gn} + \phi_g$. In other words, for a fixed $\phi>0$, a negative binoimal assumption assumes log-counts whose variance is a decreasing function of the mean, with asymptote at $\phi_g>0$. Empirical evidence \citep{voom} suggests that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with. 
+Theory suggests that an RNA-seq count, $C$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(C_{gn})=\op{E}(C_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$). Because gene expression is usually measured on the log scale, consider the delta method  approximation for a negative binomial count in terms of the log-count: $\op{Var}(\log C_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g\mu_{gn}^2)=1/\mu_{gn} + \phi_g$. In other words, for a fixed $\phi>0$, a negative binoimal assumption assumes log-counts whose variance is a decreasing function of the mean, with asymptote at $\phi_g>0$. Empirical evidence \citep{voom} suggests that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with.
 
-\cite{voom} proposed \textit{voom}, a way to incorporate between-gene information about the mean-variance relationship in an RNA-seq data set through precision weighting of individual log-counts, making the data amenable to analysis with a linear model. It works by first calculating, for each gene, a sample standard deviation and mean log-count, and then fitting a LOWESS curve, treating the square root standard deviation as a response and the mean log-count as the predictor. Fitted values are then calculated for all counts, which are converted into precision weights. This leads to a different model for the variance, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. This is a somewhat different model, with $\sigma_g$ as a multiplicative term rather than additive, but this doesn't seem to be a critical issue. To use \texttt{voom} in our pipline requires both that we estimate $\op{Var}_{LOWESS}(\mu)$ and then plug in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
+\cite{voom} proposed a method called \textit{voom}, as a way to make RNA-seq data compatible with normal linear models. \textit{voom} introduces count specific precision weights, estimated from the all of the data, to compensate for the non-constant mean-variance relationship present in RNA-seq. Briefly, first a regression computed for each gene, producing a standard deviation and mean log-count. Next a smooth nonparametric regression is fit to the square root of the gene-wise standard deviations, using the mean log-counts as a predictor. The weights are then estimated using this fitted model. This procedure implies that the variance of a count is given by, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. We use \texttt{voom} in our pipline by estimating $\op{Var}_{LOWESS}(\mu)$ and plugging in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
 
-% Rather than assuming the mean-variance relationship of the negative binomial and allowing for an adjustment of the degree of overdispersion from gene to gene, voom's precision weighting scheme estimates the mean-variance relationship from the data and assumes that it applies both within as well as across genes. We use the precision weights as an input to our model (Section \ref{sec:model}) which estimates a gene-specific variance parameter. Our use of voom in our pipeline implies a gene-specific mean-variance relationship \textit{for the log counts} given by
-% $$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
+Rather than assuming the mean-variance relationship of the negative binomial and allowing for an adjustment of the degree of overdispersion from gene to gene, voom's precision weighting scheme estimates the mean-variance relationship from the data and assumes that it applies both within as well as across genes. We use the precision weights as an input to our model (Section \ref{sec:model}) which estimates a gene-specific variance parameter. Our use of voom in our pipeline implies a gene-specific mean-variance relationship \textit{for the log counts} given by
+$$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
 
 \subsection{Priors}
 The base measure, $Q$, represents a prior guess at $\mathcal{P}$. The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we set $Q$ by matching the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. The prior distribution for $\alpha$ was chosen by considering the implied expected number of clusters. Although we it is difficult to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, we cannot deal with more than about 6000 clusters. We select the prior $\alpha \sim \op{Ga}(3,3/G^{0.5})$, which implies the expected number of clusters is likely between $G^{0.5}$ and $G^{0.75}$.
@@ -169,7 +169,7 @@ The Dirichlet process satisfies two requirements proposed by \citet{ferguson}, t
 %For $\beta_gl$; $l=2,3,4,5$, these were obtained using the \texttt{estimateBetaPriorVar} from the \texttt{DESeq2} package using the ``quantile" method. For $\beta_g1$ and $\sigma^2_g$, a similar m
 
 \subsection{Gibbs Sampler}
-Our Gibbs sampler for performing MCMC sampling from the posterior distribution for the BNP model is adapted from the blocked Gibbs sampler of \ref{ishwaran2000}. The steps are as follows:
+Our Gibbs sampler for performing MCMC sampling from the posterior distribution for the BNP model is adapted from the blocked Gibbs sampler of \citet{ishwaran2000}. The steps are as follows:
 
 \paragraph{Sample $\zeta_g$, $\alpha$:}
 
@@ -194,11 +194,11 @@ Here $W_g$ is a diagonal matrix consisting of the log-count specific precisions.
   X^\top W_g X + C^{-1} \right)^{-1}, \mbox{ and }\hat{m}_k=\hat{C}_k \left(\sum_{g:\zeta_g=k} X^\top W_g y_g +
       C^{-1}m \right).
 \end{equation*}
-The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq k$ for all $g$, then $\tilde{\beta}_k$ is simply drawn from it prior. 
+The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq k$ for all $g$, then $\tilde{\beta}_k$ is simply drawn from it prior.
 
 \paragraph{Sample $\tilde{\sigma}_k$s}
 \begin{equation*}
-      \tilde{\sigma}_k = \op{IG}(\hat{a}_k,\hat{b}_k), 
+      \tilde{\sigma}_k = \op{IG}(\hat{a}_k,\hat{b}_k),
     \end{equation*}
     \begin{equation*}
       \mbox{ where }\hat{a}_k = a_{\sigma^2} + \frac{NM_k}{2},\mbox{ and }\hat{b}_k= b_{\sigma^2} + \sum_{g:\zeta_g=k}y_g^\top W_g y_g -2 \beta_g^\top X^\top W_g y_g  +\beta_g^\top X^\top W_g X \beta_g
@@ -211,9 +211,7 @@ The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq 
 \nu_k ~ \op{Be}(M_k + 1, \sum_{l>k}M_l + \alpha).
 \end{equation*}
 
-Given $\alpha$ and $\zeta$, the $\nu_g$ are conditionally independent.
-
-Derivations of the full conditionals are given in Appendix \ref{full-conditionals}.
+Given $\alpha$ and $\zeta$, the $\nu_g$ are conditionally independent. Derivations of the full conditionals are given in the Appendix.
 
 \section{Simulation study 1}
 Since the proposed BNP method uses voom weights, we did a simulation study to compare the our method to the voom-limma method for RNA-seq data. The voom-limma method fits a linear model to the data under the same transformation conditional on the same voom quality weights, but proceeds by fitting each gene independently. Thus, a comparison of the estimates obtained under BNP model to the voom-limma estimates will show the result of borrowing information across genes via the Dirichlet process prior on $\mathcal{P}$.
@@ -222,11 +220,11 @@ Since the proposed BNP method uses voom weights, we did a simulation study to co
 \begin{enumerate}
 \item Select random draw of $\mathcal{P}$, $\mathcal{P}^{(s)}$, obtained from the posterior distribution given the entire Paschold data set
 
-\item Sample $(\beta_g,\sigma^2_g)$ independently from $\mathcal{P}^{(s)}$, $g=1,\ldots,10000$ 
+\item Sample $(\beta_g,\sigma^2_g)$ independently from $\mathcal{P}^{(s)}$, $g=1,\ldots,10000$
 
 \item Sample $y_{g} \sim N(X\beta_g,\sigma^2_g I)$
 \end{enumerate}
-Produce 6-10 such data sets\\
+% Produce 6-10 such data sets\\
 
 \paragraph{TREAT}
 A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. One method, called a TREAT, tests whether the log-fold-change due to a model term is larger than a specified threshold in absolute value, i.e. it allows users to ranking genes based on the evidence of the hypothesis, $H_{gl}:|\beta_{gl}|>t$. The inclusion of this test in their software was in response to the observation that even if an effect is statistically significant, often it is uninteresting unless it has a certain magnitude. TREAT is a moderated t-test that involves an shrunken estimates of $\sigma^2_g$ \citep{treat}. For more details, see \citet{treat}.
@@ -234,8 +232,8 @@ A common goal of gene expression profiling is to produce a ranked list of 'calle
 We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites that $H_{gl}$ is true. We use receiver operating characteristic (ROC) curves to do this. ROC curves provide a graphical summary of the performance of a classifier by showing, as a function of the top $H$ genes as ranked by the classifier, the the proportion of cases correctly identified (true positive rate, TPR) along with the proportion of non-cases that are improperly identified (false positive rate, FPR). The top panel of Figure \ref{roc-ss1} shows a typical receiver operator characteristic curve among the ten we observed. The bottom panel shows the area under the ROC curve (AUC) up to a FPR of 0.1. For both plots we show results for each component of $\beta$ (excluding the intercept) and a range of thresholds. In our simulations the BNP method tended to outperform \texttt{limma} on average. Note that while \texttt{limma} can perform tests with a threshold of zero, there is no comparable result for the BNP model, since this hypothesis has probability zero. The exception seems to be for the parental half-difference. For that particular set of tests, both \texttt{limma} and BNP appear to have similar accuracy.
 %The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin.
 % This suggests that our method, by ``learning" the underlying distribution of $\beta$, increases the ability to detect effects of practical significance.
-
-\begin{figure}[h!]
+% 
+\begin{figure}[ht!]
 \centering
 \includegraphics[height=.8\textheight]{ss1-roc-auc}
 \caption{ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is made between BNP and limma.}
@@ -244,7 +242,7 @@ We can compare the ranking given by \texttt{limma} to ones based on posterior pr
 
 We also compared the accuracy of point estimate under the two models. Here we expect BNP to do much better than \texttt{limma}. This is because \texttt{limma} produces point estimates for $\beta_g$ without any pooling, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller that those for \texttt{limma}.
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
 \centering
 \includegraphics[width=.8\textwidth]{ss1-mspe}
 \caption{Mean squared prediction error for each effect for simulation study 1. Comparison is made between BNP and limma.}
@@ -266,7 +264,7 @@ To compare estimation and accuracy of gene selection with existing methods desig
 
 
 % Ranking accuracy (ROCs)
-Both \texttt{DESeq2} and \texttt{edgeR} provide threshold tests similar to TREAT in \texttt{limma}. We again used ROC to compare the accuracy in gene ranking between these three methods. For this simulation, unlike the first, the true parameters for each gene are unique. In general, the difference in performance was less noticable in this simulation. To get at a measure of overall performance, we calculated the area under the ROC curve (AUC) up to a false positive rate of 0.1. Comparing AUC across the ten simulations, we see that there were difference is rankings between the methods for different tests and thresholds. BNP appears to do at least as well as both \texttt{DESeq2} and \texttt{edgeR} under each condition, but it outshone both of them when identifying genes with a hybrid effect larger than a threshold. We expect that BNP is an improvement here because the parental half-difference is informative about the hybrid affect, and data are informative about that relationship which is captured in the posterior for $\mathcal{P}$. We discuss this further in Section \ref{analysis}. 
+Both \texttt{DESeq2} and \texttt{edgeR} provide threshold tests similar to TREAT in \texttt{limma}. We again used ROC to compare the accuracy in gene ranking between these three methods. For this simulation, unlike the first, the true parameters for each gene are unique. In general, the difference in performance was less noticable in this simulation. To get at a measure of overall performance, we calculated the area under the ROC curve (AUC) up to a false positive rate of 0.1. Comparing AUC across the ten simulations, we see that there were difference is rankings between the methods for different tests and thresholds. BNP appears to do at least as well as both \texttt{DESeq2} and \texttt{edgeR} under each condition, but it outshone both of them when identifying genes with a hybrid effect larger than a threshold. We expect that BNP is an improvement here because the parental half-difference is informative about the hybrid affect, and data are informative about that relationship which is captured in the posterior for $\mathcal{P}$. We discuss this further in Section \ref{analysis}.
 
 \begin{figure}[ht!]
 \centering
@@ -289,7 +287,7 @@ For each simulation we computed the mean squared prediction error (MSPE) corresp
 
 
 A further advantage that we have over these other methods is that by using posterior samples, we can evaluate probabilites of hypotheses with composite null parameter spaces which cannot be done using these other packages.
-%\citet{wang-phd} discussed how the geometry of the null parameter space for heterosis leads to serious difficulties with classical likelihood ratio tests; not the least of which is that p-values are not uniformly distributed under the null hypothesis, invalidating assumptions needed to apply corrections for multiple testing. 
+%\citet{wang-phd} discussed how the geometry of the null parameter space for heterosis leads to serious difficulties with classical likelihood ratio tests; not the least of which is that p-values are not uniformly distributed under the null hypothesis, invalidating assumptions needed to apply corrections for multiple testing.
 
 \begin{table}
 \caption{Definition of types of gene heterosis in terms of mean expression by genotype as well as using parameterization implied by the design matrix.}
@@ -303,7 +301,7 @@ low-parent Mo17xB73  & $\min\{\mbox{B73,Mo17}\} > \mbox{Mo17xB73}$ & $-|\beta_{g
 \end{tabular}
 \end{table}
 
-The ROC plots suggests that the posterior probabilites do a good job with ranking the genes. However, because they are interpretable as probabilites, we can still question their accuracy relative to the frequency of true positives. Figure \ref{calib-ss2} shows estimated calibration curves for the 10 simulation studies for a set of hypotheses that might be of interest to researchers. Each curve was produced by binning genes by binning genes with similar posterior probabilites and plotting relative frequency of ``true-positives" vs. the midpoint probability of the bin. Note that monotonicity is all that is needed to produce a good ROC. There appears to be a tendency for
+The ROC plots suggests that the posterior probabilites do a good job with ranking the genes. However, because they are interpretable as probabilites, we can still question their accuracy relative to the frequency of true positives. Figure \ref{calib-ss2} shows estimated calibration curves for the 10 simulation studies for a set of hypotheses that might be of interest to researchers. Each curve was produced by binning genes by binning genes with similar posterior probabilites and plotting relative frequency of ``true-positives" vs. the midpoint probability of the bin. Note that monotonicity in the probabilities when sorted by true conditionis all that is needed to produce a good ROC.
 
 \begin{figure}[ht!]
 \centering
@@ -337,7 +335,7 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 \label{exemplars}
 \end{figure}
 
-\citet{landau2016high} undertook an analysis of the same data. They modeled the counts directly as Poisson, using a generalized linear model with log link and gene-specific linear predictors as well as a gene-specific overdispersion parameter. It is interesting to compare their results to ours as their method was also fully Bayesian. They assumed independence in the distribution of the linear predictors. Table \ref{bayes-compare} shows a comparison of the posterior probabilities obtained by our method and ours binned into four equally sized intervals for the four types of extreme gene heterosis discussed earlier in this section. While there is a fair amount of agreement between these two methods on the genes with highest and lowest probabilities of heterosis, the differences between the inferences are considerable.
+\citet{landau2016high} undertook an analysis of the same data. They modeled the counts directly as Poisson, using a generalized linear model with log link and gene-specific linear predictors as well as a gene-specific overdispersion parameter. It is interesting to compare their results to ours as their method was also fully Bayesian. They assumed independence in the distribution of the linear predictors. Table \ref{bayes-compare1} shows a comparison of the posterior probabilities found by our method to Landau's binned into five intervals for each of the four types of extreme heterosis. While there is a fair amount of agreement between these two methods on the genes with highest and lowest probabilities of heterosis, the differences between the inferences are considerable.
 
 % latex table generated in R 3.4.2 by xtable 1.8-2 package
 % Tue Nov 14 21:58:47 2017
@@ -346,29 +344,29 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 \centering
 \caption{Two-way tables comparing the posterior probabilities of low-parent gene heterosis for all genes in the Paschold (2012) data set found by BNP and Landau (2016).}
 \label{bayes-compare1}
-% \begin{tabular}{rrrrrr}
-% &  &\multicolumn{4}{c}{Landau}\\
-%   \toprule
-% & & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] & total\\ 
-%   \midrule
-% \multirow{4}{*}{BNP} & [0,0.25] & 20435 & 5499 & 1687 & 702 \\ 
-%   & (0.25,0.5] & 1299 & 1978 & 930 & 550 \\ 
-%   & (0.5,0.75] & 446 & 1115 & 486 & 509 \\ 
-%   & (0.75,1] & 148 & 287 & 167 & 583 \\ 
-%   & total
-%    \bottomrule
+% % \begin{tabular}{rrrrrr}
+% % &  &\multicolumn{4}{c}{Landau}\\
+% %   \toprule
+% % & & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] & total\\
+% %   \midrule
+% % \multirow{4}{*}{BNP} & [0,0.25] & 20435 & 5499 & 1687 & 702 \\
+% %   & (0.25,0.5] & 1299 & 1978 & 930 & 550 \\
+% %   & (0.5,0.75] & 446 & 1115 & 486 & 509 \\
+% %   & (0.75,1] & 148 & 287 & 167 & 583 \\
+% %   & total
+% %    \bottomrule
 \begin{tabular}{rrrrrrr|r}
 &  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
 \multirow{6}{*}{BNP} & [0,0.05]    & 0.283 & 0.083 & 0.116 & 0.001 & 0.000 & 0.483 \\
-                     & (0.05,0.15] & 0.017 & 0.037 & 0.129 & 0.003 & 0.001 & 0.186 \\ 
-                     & (0.15,0.85] & 0.009 & 0.025 & 0.254 & 0.017 & 0.009 & 0.313 \\ 
-                     & (0.85,0.95] & 0.000 & 0.000 & 0.007 & 0.002 & 0.002 & 0.011 \\ 
+                     & (0.05,0.15] & 0.017 & 0.037 & 0.129 & 0.003 & 0.001 & 0.186 \\
+                     & (0.15,0.85] & 0.009 & 0.025 & 0.254 & 0.017 & 0.009 & 0.313 \\
+                     & (0.85,0.95] & 0.000 & 0.000 & 0.007 & 0.002 & 0.002 & 0.011 \\
                      & (0.95,1]    & 0.000 & 0.000 & 0.003 & 0.001 & 0.003 & 0.007 \\
                      \midrule
-                     & total       & 0.308 & 0.145 & 0.508 & 0.022 & 0.016 & 1.000 \\ 
+                     & total       & 0.308 & 0.145 & 0.508 & 0.022 & 0.016 & 1.000 \\
    \bottomrule
 \end{tabular}
 \\[.5cm]
@@ -378,25 +376,25 @@ Low-parent heterosis B73$\times$Mo17.
 % \begin{tabular}{rrrrrr}
 % &  &\multicolumn{4}{c}{Landau}\\
 %   \toprule
-% & & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\ 
+% & & [0,0.25] & (0.25,0.5] & (0.5,0.75] & (0.75,1] \\
 %   \hline
 % \multirow{4}{*}{BNP} & [0,0.25] & 21486 & 4557 & 1486 & 677 \\
-%  &  (0.25,0.5] & 1639 & 2155 & 611 & 306 \\ 
-%  &  (0.5,0.75] & 301 & 989 & 522 & 390 \\ 
-%  &  (0.75,1] & 140 & 677 & 197 & 688 \\ 
+%  &  (0.25,0.5] & 1639 & 2155 & 611 & 306 \\
+%  &  (0.5,0.75] & 301 & 989 & 522 & 390 \\
+%  &  (0.75,1] & 140 & 677 & 197 & 688 \\
 %    \bottomrule
    \begin{tabular}{rrrrrrr|r}
 &  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
-\multirow{6}{*}{BNP} & [0,0.05] & 0.296 & 0.090 & 0.135 & 0.003 & 0.001 & 0.523 \\ 
-                     & (0.05,0.15] & 0.021 & 0.036 & 0.093 & 0.002 & 0.001 & 0.152 \\ 
-                     & (0.15,0.85] & 0.010 & 0.031 & 0.237 & 0.011 & 0.005 & 0.295 \\ 
-                     & (0.85,0.95] & 0.000 & 0.000 & 0.015 & 0.002 & 0.003 & 0.021 \\ 
+\multirow{6}{*}{BNP} & [0,0.05] & 0.296 & 0.090 & 0.135 & 0.003 & 0.001 & 0.523 \\
+                     & (0.05,0.15] & 0.021 & 0.036 & 0.093 & 0.002 & 0.001 & 0.152 \\
+                     & (0.15,0.85] & 0.010 & 0.031 & 0.237 & 0.011 & 0.005 & 0.295 \\
+                     & (0.85,0.95] & 0.000 & 0.000 & 0.015 & 0.002 & 0.003 & 0.021 \\
                      & (0.95,1] & 0.000 & 0.000 & 0.003 & 0.002 & 0.005 & 0.010 \\
                      \midrule
-                     & total & 0.327 & 0.157 & 0.483 & 0.020 & 0.014 & 1.000 \\ 
+                     & total & 0.327 & 0.157 & 0.483 & 0.020 & 0.014 & 1.000 \\
    \bottomrule
 \end{tabular}
 \\[.5cm]
@@ -411,15 +409,15 @@ Low-parent heterosis Mo17$\times$B73.
    \begin{tabular}{rrrrrrr|r}
 &  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
-\multirow{6}{*}{BNP} & [0,0.05] & 0.395 & 0.126 & 0.155 & 0.000 & 0.000 & 0.676 \\ 
-                     & (0.05,0.15] & 0.037 & 0.037 & 0.085 & 0.000 & 0.000 & 0.159 \\ 
-                     & (0.15,0.85] & 0.020 & 0.025 & 0.100 & 0.003 & 0.001 & 0.149 \\ 
-                     & (0.85,0.95] & 0.000 & 0.000 & 0.011 & 0.001 & 0.001 & 0.012 \\ 
+\multirow{6}{*}{BNP} & [0,0.05] & 0.395 & 0.126 & 0.155 & 0.000 & 0.000 & 0.676 \\
+                     & (0.05,0.15] & 0.037 & 0.037 & 0.085 & 0.000 & 0.000 & 0.159 \\
+                     & (0.15,0.85] & 0.020 & 0.025 & 0.100 & 0.003 & 0.001 & 0.149 \\
+                     & (0.85,0.95] & 0.000 & 0.000 & 0.011 & 0.001 & 0.001 & 0.012 \\
                      & (0.95,1] & 0.000 & 0.000 & 0.003 & 0.001 & 0.001 & 0.005 \\
                      \midrule
-                     & total & 0.452 & 0.187 & 0.353 & 0.005 & 0.002 & 1.000 \\ 
+                     & total & 0.452 & 0.187 & 0.353 & 0.005 & 0.002 & 1.000 \\
    \bottomrule
 \end{tabular}
 \\[.5cm]
@@ -429,15 +427,15 @@ High-parent heterosis B73$\times$Mo17.
 \begin{tabular}{rrrrrrr|r}
 &  &\multicolumn{6}{c}{Landau (2016)}\\
   \toprule
-&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\ 
+&  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
-\multirow{6}{*}{BNP} & [0,0.05] & 0.352 & 0.115 & 0.165 & 0.000 & 0.000 & 0.633 \\ 
-                     & (0.05,0.15] & 0.035 & 0.032 & 0.087 & 0.000 & 0.000 & 0.155 \\ 
-                     & (0.15,0.85] & 0.033 & 0.035 & 0.116 & 0.005 & 0.002 & 0.190 \\ 
-                     & (0.85,0.95] & 0.001 & 0.001 & 0.014 & 0.001 & 0.001 & 0.017 \\ 
+\multirow{6}{*}{BNP} & [0,0.05] & 0.352 & 0.115 & 0.165 & 0.000 & 0.000 & 0.633 \\
+                     & (0.05,0.15] & 0.035 & 0.032 & 0.087 & 0.000 & 0.000 & 0.155 \\
+                     & (0.15,0.85] & 0.033 & 0.035 & 0.116 & 0.005 & 0.002 & 0.190 \\
+                     & (0.85,0.95] & 0.001 & 0.001 & 0.014 & 0.001 & 0.001 & 0.017 \\
                      & (0.95,1] & 0.000 & 0.000 & 0.003 & 0.001 & 0.001 & 0.005 \\
                      \midrule
-                     & total & 0.421 & 0.183 & 0.386 & 0.007 & 0.003 & 1.000 \\ 
+                     & total & 0.421 & 0.183 & 0.386 & 0.007 & 0.003 & 1.000 \\
    \bottomrule
 \end{tabular}
 \\[.5cm]
@@ -447,11 +445,11 @@ High-parent heterosis Mo17$\times$B73.
 
 From the marginal distributions of probabilities, we see that BNP finds lower chances of LPH across genes than Landau. For example, Landau found 1.6\% of genes to have greater than 95\% probability of low-parent heterosis for B73$\times$Mo17, but the majority of these were given less than 85\% probability by BNP. However, BNP also found higher probabilities for some genes: More than 1/3 of the 0.7\% genes which BNP found to be high probablity genes ($>$95\%) were found to only have moderate probabilities (15\%-85\%). The story is different for HPH. Here, BNP has greater confidence, finding both more high- and low-probability genes than Landau.
 
-While we cannot say from these comparisons whether one model is better than another, they serve to highlight the impact that distributional assumptions can have in detecting patterns of gene expression. Given our belief that models like that of \citet{Landau} and \cite{deseq2014} make unreasonable assumptions about the distribution of the gene-specific parameters, we expect that the BNP probabilites incorporate more information about the broader patterns of expression exhibited in the data.
+While we cannot say from these comparisons whether one model is better than another, they serve to highlight the impact that distributional assumptions can have in detecting patterns of gene expression. Given our belief that models like that of \citet{landau2016high} and \citet{deseq2014} make unreasonable assumptions about the distribution of the gene-specific parameters, we expect that the BNP probabilites incorporate more information about the broader patterns of expression exhibited in the data.
 
 \iftoggle{thesis}{
 On a different note, \citet{landau2016high} found that when an independent normal model was assumed for $\beta_{gl}$, their posterior distributions were well approximated by a normal distribution matching the first two posterior moments. This is convenient because computation of these moments requires minimal storage, as running means can be used to update these after each iteration of the MCMC chain.
-  
+
 Figure \ref{compare-to-approx} shows full posterior distributions and normal approximations for each component of $\beta_g$ for four randomly selected genes. The quality of the moment-based approximation is satisfactory in some cases but not in others. Due to the discrepencies displayed here, we would recommend basing inference on the full posterior, rather than a normal approximation. In our experience, multimodality in posterior plots such as Figure \ref{compre-to-approx} can be suggestive that the MCMC has not converged. However, the traceplots for these parameters (Figure \ref{mixing}) do not indicate this to be the case; rather, we suspect this is a feature of the nonparametric model. For reference, the data and estimated mean expression levels are displayed in Figure \ref{compare-cis}.
 %figures for 4 random genes
 \begin{figure}
@@ -491,11 +489,23 @@ panel shows the corresponding estimates for our analysis overlayed on a posterio
 \section{Discussion}
 Hierarchical models have an important role in problems where, as is true in gene expression, the number of model parameters is much larger than the number of subjects. By modeling the parameters, we use the ``between-gene" information in the data to moderate our inferences about individual genes . The use of hierarchical models for gene expression analyses is standard. Empirical evidence suggests, however, that model assumptions often made about the distribution of the gene-specific parameters are not realistic --- rather, the empirical distributions can exhibit complex shapes. However, it seems difficult to suggest a parametric alternative to the common default assumptions (independence, normality.) We have demonstrated a computationally demanding, yet feasible, alternative: a Dirichlet process prior on this unknown distribution.
 
-Our simulation studies show that the BNP model presented here provides a viable alternative to more standard methods. Intuitively, it performs substantially better than the alternative methods we considered in cases where the data are strongly suggestive of an underlying distribution that violates standard assumptions, particularly of independence.
+Our simulation studies show that the BNP methodology provides a viable alternative to more standard methods. Intuitively, we expect that it should do better than the alternative methods we considered in cases when the distribution of gene-effects has an unusual shape that contradicts independence. We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the affect of the recessesive allele in the heterozygous maize plant.
+
+When there is only interest in expression at the level of genes, it should still be valuable to have a model flexible enough to handle detectable patterns in the data. Figure \ref{all-shrink} shows side-by-side plots of the distribution of the estimated components by BNP and DESeq2, which assumes independent priors on the gene-specific effects (excluding the intercept). The BNP estimates are shrunk toward the mass of the distribution, whereas DESeq2 estimates are shrunk toward the origin.
+
+
+\begin{landscape}
+\centering
+\begin{figure}
+\includegraphics[height=.9\textheight]{pairs-shrinkage}
+\caption{Bivariate histograms of estimates of gene-specific effects, excluding intercepts. The estimates shown are posterior means obtained with the BNP method as well as estimates obtained with DESeq2 with and without independent normal shrinkage priors (MAP and MLE, respectively) are shown.}
+\label{all-shrink}
+\end{figure}
+\end{landscape}
 
 Additionally, while posterior sampling is cumbersome in the amount of memory involved (approximately 6 GB for 4,000 samples of $\beta$), the interpretability of posterior quantities of interest and the inferential flexibility allowed make a strong case for the use of the Bayesian approach.
 
-We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the affect of the recessesive allele in the heterozygous maize plant.
+
 
 There are various modifications that might be considered to our model, within the same graphical structure. In the BNP method, precision weighting was used to correct for inaccuracies in mean-variance relationship implied by a normal assumption on the normalized log-counts. We would prefer not to have our inference conditional on these pre-computed estimates. An alternative approach would be to adopt an over-dispersed count model, such as the negative binomial and model the counts directly. Our reason for not doing this in the first place is that by proper choice of base measure, we get conditionally conjugate draws for $\tilde{\beta}_k$ and $\tilde{\sigma}^2_k$ that depend only on simple linear combinations of low-dimensional summaries of the counts. In contrast, the log-likelihood for the negative binomial involves quantities such as $\sum_n \log \Gamma(y_{gn}+\phi)$, for real-valued overdispersion parameter $\phi$, which is not linear in the parameter. Despite such nuisances, the overall structure of our Gibbs sampler would remain unchanged.
 
