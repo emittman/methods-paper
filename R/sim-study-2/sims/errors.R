@@ -2,6 +2,8 @@ library(tidyr)
 library(plyr)
 library(dplyr)
 library(DESeq2)
+library(limma)
+library(edgeR)
 
 setwd("R/sim-study-2/sims/")
 load("../../data/heterosis_design.RData")
@@ -27,11 +29,17 @@ error.df <- function(grp){
     deseq.dat <- DESeqDataSetFromMatrix(sim$y, colData = as.data.frame(X[,2:5]),
                                         design = ~ parent_hd+hybrid+hybrid_hd+flow_cell)
     
-    fit.deseq <- DESeq(deseq.dat)
-    est.df.deseq2 <- as.data.frame(coef(fit.deseq))
+    fit.deseq <- DESeq(deseq.dat, betaPrior = TRUE)
+    est.df.deseq <- as.data.frame(coef(fit.deseq))
+    names(est.df.deseq)[1] <- "intercept"
+    est.df.deseq$g <- 1:nrow(est.df.bnp)
+    ds.long <- gather(est.df.deseq, key=par, value=`DESeq2 (shrunk)`, -g)
+    
+    fit.deseq2 <- DESeq(deseq.dat, betaPrior = FALSE)
+    est.df.deseq2 <- as.data.frame(coef(fit.deseq2))
     names(est.df.deseq2)[1] <- "intercept"
     est.df.deseq2$g <- 1:nrow(est.df.bnp)
-    ds2.long <- gather(est.df.deseq2, key=par, value=DESeq2, -g)
+    ds2.long <- gather(est.df.deseq2, key=par, value=`DESeq2 (unshrunk)`, -g)
     
     #Fit Voom
     voom.dat <- DGEList(sim$y) %>% calcNormFactors(method="TMM")
@@ -58,10 +66,11 @@ error.df <- function(grp){
     
     merged.all <- merge(bnp.long, truth.long, by=c("g","par"))
     merged.all <- merge(merged.all, voom.long, by=c("g","par"))
+    merged.all <- merge(merged.all, ds.long, by=c("g","par"))
     merged.all <- merge(merged.all, ds2.long, by=c("g","par"))
     merged.all <- merge(merged.all, edgeR.long, by=c("g","par"))
     
-    means.df <- gather(merged.all, key=type, value=est, BNP, DESeq2, voom, edgeR)
+    means.df <- gather(merged.all, key=type, value=est, BNP, `DESeq2 (shrunk)`, `DESeq2 (unshrunk)`, voom, edgeR)
     
     out <- means.df %>% 
       dplyr::group_by(g, par, type) %>%
@@ -97,11 +106,12 @@ out3 <- readRDS("../data/error-df3.rds")
 #   scale_x_continuous(trans="log", breaks=c(.00001,.0001,.001,.01,.1))
 
 combined <- rbind(out1,out2,out3) %>%
-  dplyr::mutate(par = factor(par, levels=c("intercept","parent_hd","hybrid","hybrid_hd","flow_cell"))) %>%
+  dplyr::mutate(par = factor(par, levels=c("intercept","parent_hd","hybrid","hybrid_hd","flow_cell"),
+                             labels=c("intercept", "parental HD", "hybrid", "hybrid HD", "flow cell"))) %>%
   gather(key=error_type, value=value, MSPE, MAPE)
   
-combined$type <- factor(combined$type, levels=c("BNP","DESeq2","edgeR","voom"),
-                        labels=c("BNP","DESeq2","edgeR","voom-limma"))
+combined$type <- factor(combined$type, levels=c("BNP","edgeR","DESeq2 (unshrunk)","DESeq2 (shrunk)", "voom"),
+                        labels=c("BNP","edgeR","DESeq2 (unshrunk)","DESeq2 (shrunk)","voom-limma"))
 
 combined %>%
   dplyr::filter(par != "intercept", error_type=="MAPE") %>%
@@ -114,7 +124,10 @@ combined %>%
   dplyr::filter(par != "intercept", error_type=="MSPE", type != "voom-limma") %>%
   ggplot(aes(type, y=value, color=type)) + 
   geom_boxplot(aes(fill=type), alpha=.5) + 
+  geom_line(aes(group=sim), color="black", alpha=.5)+
   facet_wrap(~par, scales="free")+
-  theme_bw(base_size=14) + ylab("") + xlab("") + ggtitle("Mean Squared Prediction Error")
+  theme_bw(base_size=14) + ylab("") + xlab("") + ggtitle("Mean Squared Prediction Error")+
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 30, vjust = .95, hjust=.95))
 
 ggsave("../../../figures_tables/ss2-mspe.pdf", width=6, height=5)

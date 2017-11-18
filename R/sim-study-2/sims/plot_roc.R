@@ -1,3 +1,7 @@
+roc1 <- out1
+roc2 <- out2
+roc3 <- out3
+rm(list=c("out1",'out2','out3'))
 roc1 <- readRDS("../data/roc-df1.rds")
 roc2 <- readRDS("../data/roc-df2.rds")
 roc3 <- readRDS("../data/roc-df3.rds")
@@ -10,16 +14,19 @@ consolidated <- rbind(roc1,roc2,roc3) %>%
 consolidated$p <- factor(consolidated$p, levels=2:5,
                          labels=c("parental HD", "hybrid",
                                   "hybrid HD", "flow cell"))
+consolidated$type <- factor(consolidated$type, levels=c("BNP","edgeR","DESeq2 (unshrunk)", "DESeq2 (shrunk)","voom-limma"))
 ssss <- sample(1:10,1)
 p1 <- filter(consolidated,threshold<.8, threshold>0, sim==ssss, type != "voom-limma") %>%#,p %in% c("parental HD","hybrid","hybrid HD")) %>%
   # ddply(.(threshold,p,type,FPR), summarise, TPR=mean(TPR)) %>%
   ggplot(aes(FPR,TPR, color=type, linetype=type, group=id)) + geom_line() + 
   facet_grid(threshold~p, scales = "free")+theme_bw(base_size=14)+
-  theme(legend.position = c(.9,.14),
+  theme(legend.position = c(.88,.14),
         legend.margin = margin(-10,-10,-10,-10,unit="pt"),
-        legend.text = element_text(size=8),
+        legend.text = element_text(size=7),
         legend.title = element_text(size=10))
-p1 <- p1 + theme(axis.text.x = element_text(angle = 90, vjust =.5))
+p1 <- p1 + theme(axis.text.x = element_text(angle = 90, vjust =.5))+
+  guides(color=guide_legend("", ncol=1),
+         linetype=guide_legend("", ncol=1))
 aucs <- arrange(consolidated, sim, threshold, p, type, FPR) %>%
   filter(FPR < .1, type!="voom-limma") %>%
   ddply(.(sim, threshold, p, type), function(x){
@@ -33,11 +40,12 @@ p2 <- filter(aucs, threshold>0,threshold<.8)%>%#, p %in% c("parental HD","hybrid
   geom_line(aes(group=sim), alpha=.5) + facet_grid(threshold~p) +
   theme_bw(base_size=14)+xlab("")+
   theme(legend.position = "none",
-  axis.text.x = element_text(angle = 90, vjust = .5))
+  axis.text.x = element_text(angle = 30, vjust = .95, hjust=.95))+
+  guides("", color=guide_legend(ncol=2))
 
 library(cowplot)
 plot_grid(p1,p2,ncol=1)
-ggsave("../../../figures_tables/ss2-roc-auc.pdf", width=6, height=10)
+ggsave("../../../figures_tables/ss2-roc-auc2.pdf", width=7.5, height=10)
 
 rr <- dplyr::filter(roc2, threshold==.25, p==2, type=="BNP")
 
