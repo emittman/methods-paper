@@ -32,15 +32,15 @@
 \def\spacingset#1{\renewcommand{\baselinestretch}%
 {#1}\small\normalsize} \spacingset{1}
 
-
+\setcitestyle{round}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \if1\blind
 {
-  \title{\bf A Bayesian nonparametric analysis of RNA-seq gene expression data}
-  \author{Author 1\thanks{
-    The author gratefully acknowledges Dr. Jarad Niemi for advise and comments.\textit{This project was funded in part by a grant from the NIH, XXXX.}}\hspace{.2cm}\\
-    Department of Statistics, Iowa State University}
+  \title{\bf Detection of gene heterosis in Maize using a Bayesian nonparametric model}
+  \author{Eric Mittman\thanks{Department of Statistics, Iowa State University}\\
+    and\\
+    Jarad Niemi\footnotemark[1]}
   \maketitle
 } \fi
 
@@ -50,19 +50,19 @@
   \bigskip
   \bigskip
   \begin{center}
-    {\LARGE\bf A Bayesian nonparametric analysis of RNA-seq gene expression data}
+    {\LARGE\bf Detection of gene heterosis in Maize using a Bayesian nonparametric model}
 \end{center}
   \medskip
 } \fi
 
 \bigskip
 \begin{abstract}
-We present a Bayesian nonparametric model suitable for gene expression profiling using high-throughput sequencing technologies. An analysis pipeline is detailed for the analysis of RNA-seq data and we apply it to an experiment done on several maize genotypes. This case study highlights an advantage that Bayesian methods enjoy --- that evaluating the probability of arbitrary hypotheses regarding the model parameters is straightforward. Simulations studies are conducted which suggest that our method provides superior parameter estimates and is able to improve the accuracy of gene classification compared to other, popular methods. To make our method computationally feasible we implemented a blocked Gibbs sampler exploiting fine grain parallelism on general purpose graphical processing units.
+Heterosis or ``hybrid vigor" refers to biological differences seen in offspring of two inbred parents, which give the hybrid qualities superior to either parent. While the phenomenon is well-known, in many cases genetic causes have yet to be determined. We consider RNA-seq data obtained in an experiment conducted by Paschold et al. on four varieties of maize plants with the goal of using measurements of gene expression to categorize and identify gene heterosis which might serve as a genetic basis for the heterosis. We present a Bayesian nonparametric model suitable for the analysis of gene expression profiling data. By learning the underlying distribution of the gene-specific parameters, our model allows for appropriate borrowing of information across genes to improve gene-specific inference. Furthermore, our fully Bayesian inference allows for straightforward computation of posterior probabilities for a large class of hypotheses, like gene heterosis. Simulations studies provide evidence that our method provides improved parameter estimates over competing methods and that it may improve accuracy of gene classification. We compare the results of our analysis of the Paschold data set with those of Landau, who assumed a parameteric distribution for the gene specific parameters.
 
 \end{abstract}
 
 \noindent%
-{\it Keywords:}  Dirichlet process, hierarchical modeling, parallel computing
+{\it Keywords:}  gene expression, Dirichlet process, hierarchical modeling, parallel computing
 \vfill
 
 \newpage
@@ -74,20 +74,20 @@ We present a Bayesian nonparametric model suitable for gene expression profiling
 
 \appendix
 \include{appendix}
-\bigskip
-\begin{center}
-{\large\bf SUPPLEMENTARY MATERIAL}
-\end{center}
+% \bigskip
+% \begin{center}
+% {\large\bf SUPPLEMENTARY MATERIAL}
+% \end{center}
 
-\begin{description}
-
-\item[Title:] Brief description. (file type)
-
-\item[R-package for  MYNEW routine:] R-package ?MYNEW? containing code to perform the diagnostic methods described in the article. The package also contains all datasets used as examples in the article. (GNU zipped tar file)
-
-\item[HIV data set:] Data set used in the illustration of MYNEW method in Section~ 3.2. (.txt file)
-
-\end{description}
+% \begin{description}
+% 
+% \item[Title:] Brief description. (file type)
+% 
+% \item[R-package for  MYNEW routine:] R-package ?MYNEW? containing code to perform the diagnostic methods described in the article. The package also contains all datasets used as examples in the article. (GNU zipped tar file)
+% 
+% \item[HIV data set:] Data set used in the illustration of MYNEW method in Section~ 3.2. (.txt file)
+% 
+% \end{description}
 
 
 \bibliographystyle{plainnat}
