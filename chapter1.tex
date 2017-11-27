@@ -1,34 +1,40 @@
 \section{Introduction}
-The statistical problem of comparing group in gene expression studies is an example of the $n \ll p$ paradigm. Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies. As the technology has developed, statistical methods to analyze the data these technologies produce has proliferated. A common element of such methods is the regularization of gene-specific analysis to decrease false detection rates and improve model accuracy. One way to acheive this is to employ appropriate hierarchical models. In this paper we present a nonparametric Bayesian hierarchical regression model, applicable to a large class of gene expression studies.
+Heterosis, or ``hybrid vigor," refers to biological differences seen in offspring of two inbred parents, which give the hybrid qualities superior to either parent. While the phenomenon is well-known and widely exploited, its causes at the molecular level are not\citep{paschold}. New technologies that can simultaneously measure the expression of tens of thousands of genes provide an opportunity to shed light on these mechanisms.
+
+Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies \citep{wang2009rna}. Statistical methods to analyze RNA-seq data have proliferated \citep{voom,deseq2014,mccarthy,liu,landau}. Because cost limits the number of samples that can be sequenced, the identification of interesting genes in gene expression studies falls into the ``$n \ll p$" paradigm. In this paradigm, noise in the data tends to dominate the signal. Various statistical methods have been developed to mitigate this problem. One is to employ appropriate hierarchical models. Hierarchical, or multi-level, models provide a mechanism to borrow strength, across groups present in the data by learning the underlying distribution of the first-level model parameters. The case for using hierarchical models for RNA-seq data is compelling because there are a large number of genes, potentially providing substantial information about the distribution of gene-specific parameters, and a strong incentive to borrow information since there are often few samples with which to estimate any given gene-specific parameter. \citet{niemi} observed that the choice of parametric family can impact both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results. To avoid misspecification of the distribution of gene-specific parameters, one might choose to model them nonparametrically; for example, \citet{liu} proposed a semiparametric model for differential expression. In their model, the parameter representing the mean log-fold-change between the two treatments was modeled with a Dirichlet process (DP).
+
+RNA-seq allows for direct mapping of reads to genetic features, so measurements are counts of total reads. While most RNA-seq methods we have seen use the negative binomial (NB) distribution \citet{mccarthy} provided a theoretical motivation for directly modeling the counts via a Poisson mixture, \citet{voom} demonstrated a method for estimating precision weights, making a normal data model a viable alternative to count-based methods. We choose to take advantage of the normal model, which allows us to exploit conditional conjugacy work with lower-dimensional sufficient statistics. This eases the computation burden, which can be a considerable benefit when conducting fully Bayesian inference.
+%
+% R A common element of such methods is the regularization of gene-specific analysis to decrease false detection rates and improve estimation accuracy.
 %Because the presence of a meaningful biological effect fits awkwardly into the framework, we approach the problem of  addressed through estimation \citet{deseq2014}. This is the approach that we pursue here.
 
 % Current estimation methodologies can be understood as improving upon a ``straight" estimator by modeling gene-specific model parameters to borrow information across genes. \textit{Insert analogy to Stein's estimator}.
 
-Because the data is expensive to collect, gene expression studies typically have fairly small sample sizes ($N \approx 10$). However, because there are many genes to observe, a gene expression experiment presents an opportunity to learn the underlying distribution of the gene-specific parameters, $\mathcal{P}$. Given that gene profiling studies typically measure expression of tens of thousands of genes, there is substantial information to estimate $\mathcal{P}$. If we assume a standard parameteric family form for $\mathcal{P}$, then we should be able to estimate $\mathcal{P}$ precisely. We use the term ``hierarchical model" to refer to models where some or all of the parameters involved in the data generation model are themselves modeled as random variables.
-% The advantages of such hierarchical models have been shown to work well in practice, regardless of whether the distributional form of the random effects restrict should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague. 
 
-A rationale for hierarchical modeling in gene expression is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Due to their faster computational speed, empirical Bayes methods have been preferred by practitioners to fully Bayesian methods. One argument for their use is that when $G$ is large, $\mathcal{P}$ should be have low variance in the posterior, so that inference based on an estimate of $\mathcal{P}$ should be quite similar to a fully Bayesian analysis which integrates over the uncertainty in $\mathcal{P}$. \citet{landau2016high} ran a series of simulation studies lending support to this claim for a class of hierarchical models.
+% The advantages of such hierarchical models have been shown to work well in practice, regardless of whether the distributional form of the random effects restrict should be assumed to have a simple form, will tend to be estimated very precisely. If the model is overly simplistic, the information borrowed across genes will tend to be quite vague.
 
-Whether the method used is empirical Bayes or fully Bayesian, the use of hierarchical models in this area has led to improvements in estimation and testing. \citet{niemi} observed that the choice of parametric family can impact both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results; in contrast, misspecification of the distribution will limit both the accuracy and precision that can be obtained in estimation of the parameters.
+% A rationale for hierarchical modeling in gene expression is to regularize estimation for gene-specific parameters by shrinking the posterior distribution of these parameters toward the mass of their distribution. Due to their faster computational speed, empirical Bayes methods have been preferred by practitioners to fully Bayesian methods. One argument for their use is that when $G$ is large, $\mathcal{P}$ should be have low variance in the posterior, so that inference based on an estimate of $\mathcal{P}$ should be quite similar to a fully Bayesian analysis which integrates over the uncertainty in $\mathcal{P}$. \citet{landau2016high} ran a series of simulation studies lending support to this claim for a class of hierarchical models.
+%
+% Whether the method used is empirical Bayes or fully Bayesian, the use of hierarchical models in this area has led to improvements in estimation and testing. \citet{niemi} observed that the choice of parametric family can impact both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results; in contrast, misspecification of the distribution will limit both the accuracy and precision that can be obtained in estimation of the parameters.
 %The theory which supports these arguments assumes that the complexity of $\mathcal{P}$ can be described by a fixed number of parameters.
-%Whether or not a suitable, parsimonious parameteric model can be found for the gene-specific parameters in gene expression data is a question that 
+%Whether or not a suitable, parsimonious parameteric model can be found for the gene-specific parameters in gene expression data is a question that
 % Indeed, many `shrinkage priors', or equivalent methods, has proven to be a useful tool even when the distributional form is misspecified.
 
 % Because of its essential role, the shape of the tail, vis a vis the choice of the hierarchical model, should be considered. We showed that the choice affected the number of genes called as well as which ones.
-
-Several interesting approaches to improving the hierarchical model have been considered. \citet*{lithio} considered reparameterizing the linear predictors to minimize the correlations of the gene-specific effects, in part to motivate the use of independent prior distributions. They find that the parameterization has a significant impact on the performance of the model. 
-%We hope avoid such sensitivities by using nonparametric prior distributions for these parameters.
-\citet{voom} proposed a method which unlocks linear modeling of RNA-seq data by estimating precision weights for each RNA-seq count. This is accomplished by estimating the mean variance relationship parametrically by fitting a loess curve using independent estimates by gene of the average log expression and fourth root of the error variance. This between-gene information is then applied within genes via precision weights. \citet{liu} proposed a semiparametric model for differential expression. In their model, a gamma mixture of Poisson was used and information was borrowed across genes only for the log-fold-change parameter, which was given a Dirichlet process prior.
-
-In the present article, we propose a Bayesian nonparametric model which extends the approach taken in \citet{liu} by modeling the joint distribution of all gene-specific parameters with a Dirichlet process. We assume a normal data model, using voom weights to accomodate the mean-variance relationship of RNA-seq count data. The goal of this work is to provide a method that flexibly models the gene-specific parameters, learning their distribution automatically. For computation of the posterior, we exploit conditional independence within the posterior distribution to parallelize the computation on GPUs, following the outline presented in \citet{suchard}.
-% \citet{landau-compute} implemented a Gibbs sampler for a parametric Bayesian hierarchical model for RNA-seq data using a graphics processing unit (GPU) to accelerate computation. Their work helped to inspired this Bayesian nonparametric approach. 
+%
+% Several interesting approaches to improving the hierarchical model have been considered. \citet*{lithio} considered reparameterizing the linear predictors to minimize the correlations of the gene-specific effects, in part to motivate the use of independent prior distributions. They find that the parameterization has a significant impact on the performance of the model.
+% %We hope avoid such sensitivities by using nonparametric prior distributions for these parameters.
+% \citet{voom} proposed a method which unlocks linear modeling of RNA-seq data by estimating precision weights for each RNA-seq count. This is accomplished by estimating the mean variance relationship parametrically by fitting a loess curve using independent estimates by gene of the average log expression and fourth root of the error variance. This between-gene information is then applied within genes via precision weights. \citet{liu} proposed a semiparametric model for differential expression. In their model, a gamma mixture of Poisson was used and information was borrowed across genes only for the log-fold-change parameter, which was given a Dirichlet process prior.
+% 
+The road map for this paper is as follows: In Section~\ref{sec:data}, we describe the heterosis data of \citet{paschold}. Next, in Section~\ref{sec:model}, we first motivate the use of Bayesian nonparametric models, using an example to illustrate the consequences of misspecification in hierarchical models as well benefits of using a flexible DP prior. We then propose a Bayesian nonparametric model that extends the approach taken in \citet{liu} by modeling all gene-specific parameters with a DP. After specifying the model, we describe our implementation including data steps prior to modeling. Section~\ref{sec:ss1} describes a simulation study comparing detection of heterosis and point estimates obtained from our model to those obtained using a non-hierarchical approach but that uses the same data normalization and precision weighting. In Section~\ref{sec:ss2} we present a second simulation study, also focused on detection of heterosis and parameter estimation, that compares performance of our method to two popular negative-binomial based methods, \texttt{DESeq2} and \texttt{edgeR} \citep{edger2010, deseq2014}. Next, in Section~\ref{analysis} we present results for the Paschold data set and contrast them with those from the original paper \cite{paschold} and with those obtained by \citet{landau} who used an independent parametric model for the gene-specific parameters.
+% \citet{landau-compute} implemented a Gibbs sampler for a parametric Bayesian hierarchical model for RNA-seq data using a graphics processing unit (GPU) to accelerate computation. Their work helped to inspired this Bayesian nonparametric approach.
 
 
 \section{RNA-seq gene expression data}
 \label{sec:data}
 The starting point for our analyses is an array of RNA-seq total aligned read counts measuring the abundance of a particular messenger RNA transcript in a sample. Such an array consists of $G$ rows and $N$ columns, corresponding to genes and samples, respectively. The abundance of a transcript is often referred to as gene expression; we will follow this convention here. For more details on data collection and preprocessing of RNA-seq data, please see \citet{datta2014}.
 
-A simple analysis of RNA-seq data may be acheived by analyzing each gene independently. The experimental design can generally considered the same for all genes. Select rows for an example data set are shown below in Table \ref{counts}.
+A simple analysis of RNA-seq data may be achieved by analyzing each gene independently. The experimental design can generally considered the same for all genes. Select rows for an example data set are shown below in Table \ref{counts}.
 
 % latex table generated in R 3.4.2 by xtable 1.8-2 package
 % Thu Nov 09 17:08:22 2017
@@ -41,15 +47,15 @@ A simple analysis of RNA-seq data may be acheived by analyzing each gene indepen
 \label{counts}
 \end{minipage}
 \\[.25cm]
-\scalebox{0.7}{
-\begin{tabular}{l|rrrr|rrrr|rrrr|rrrr}
+\scalebox{0.6}{
+\begin{tabular}{cl|rrrr|rrrr|rrrr|rrrr}
   \toprule
-\multicolumn{1}{c}{type of heterosis} &  \multicolumn{4}{c}{B73} & \multicolumn{4}{c}{B73xMo17} & \multicolumn{4}{c}{Mo17xB73}& \multicolumn{4}{c}{Mo17}  \\
+GeneID & \multicolumn{1}{c}{type of heterosis} &  \multicolumn{4}{c}{B73} & \multicolumn{4}{c}{B73xMo17} & \multicolumn{4}{c}{Mo17xB73}& \multicolumn{4}{c}{Mo17}  \\
   \midrule
-HPH & 1431 & 1199 & 1235 & 1569 & 2055 & 1652 & 2149 & 2168 & 2415 & 1815 & 2142 & 2369 & 1127 & 987 & 1672 & 1518 \\
-  LPH &  86 &  62 & 131 & 128 &  52 &  43 &  85 &  95 &  60 &  23 &  63 &  74 &  85 &  71 & 178 & 205 \\
-  mixed & 122 &  98 & 146 & 150 &  73 &  77 & 159 & 127 & 178 & 122 & 259 & 252 & 108 & 103 & 207 & 171 \\
-  neither &  30 &  31 &  42 &  48 &  17 &  15 &  22 &  26 &  16 &  13 &  16 &  22 &   2 &   2 &   2 &   2 \\
+GRMZM2G306345 & HPH & 1431 & 1199 & 1235 & 1569 & 2055 & 1652 & 2149 & 2168 & 2415 & 1815 & 2142 & 2369 & 1127 & 987 & 1672 & 1518 \\
+GRMZM2G149543 &  LPH &  86 &  62 & 131 & 128 &  52 &  43 &  85 &  95 &  60 &  23 &  63 &  74 &  85 &  71 & 178 & 205 \\
+GRMZM2G079613 &  mixed & 122 &  98 & 146 & 150 &  73 &  77 & 159 & 127 & 178 & 122 & 259 & 252 & 108 & 103 & 207 & 171 \\
+AC194005.3\_FG004 &  neither &  30 &  31 &  42 &  48 &  17 &  15 &  22 &  26 &  16 &  13 &  16 &  22 &   2 &   2 &   2 &   2 \\
    \bottomrule
 \end{tabular}
 }
@@ -72,13 +78,13 @@ The advantage of hierarchical modeling generally is that that by assumming a dis
 \label{subsec:illustration}
 When the model assumptions on $\mathcal{P}$ restrict the posterior for $\mathcal{P}$ to a set that cannot realistically represent $\mathcal{P}$, this limits the efficiency of the hierarchical model. To illustrate, suppose we observe $y_{gn},\; g=1,\ldots,200,\;n=1,2,3$, and we are interested in hypotheses concerning $\op{E}(y_{gn})=\mu_g$. Suppose further that we can reasonably assume that $y_{gn}|\mu_g \ind \op{N}(\mu_g,\sigma^2)$, i.e. the data are conditionally normal, with a constant error variance. In this example we let $\mu_g$ be independent draws from a trivariate mixture of normals, $\mu_g \sim 1/3\op{N}(-4,1)+1/3\op{N}(0,1)+1/3\op{N}(4,1)$. This model was used to simulate a set of observations letting $\sigma^2=2$. A histogram of the the sample means, $\hat{\mu}_g$ is shown in the top panel of Figure~\ref{predictive}. Next, we fitted three Bayesian models to the data. First, $\mu_g \ind \mathcal{P}=\op{N}(\eta, \tau^2)$, with weakly informative priors on $\eta$ and $\tau^2$. Second, a mixture model with the correct number of components, $\mu_g \sim \mathcal{P}=\pi_1\op{N}(\eta_1,\tau^2)+\pi_2\op{N}(\eta_2,\tau^2)+\pi_3\op{N}(\eta_3,\tau^2)$, also with weakly informative priors on $\eta_j$ and $\tau^2$ and a $\op{Dir}(1,1,1)$ prior on $\pi$. Lastly, a Bayesian nonparametric prior: $\mu_g \ind \mathcal{P}$ with $\mathcal{P} \sim \op{DP}\left\{\alpha \op{N}(0,5^2)\right\}$. Critically, this last model allows us to be agnostic about the modality of $\mathcal{P}$; further details are given in the next section.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=.5\textwidth]{toy_ex/predictive}
 \begin{minipage}{.8\textwidth}
 \caption{\small Top: Sample averages for simulated data of Section~\ref{subsec:illustration}. The next three rows correspond to pointwise posterior estimates and 90\% credible intervals for the underlying density corresponding to the random distribution, $\mathcal{P}$. For the BNP model, a weighted kernel density estimate employing a bandwidth of 0.1  was used for each posterior draws of $\mathcal{P}$, as the posterior draws do not have a density with respect to Lebesgue measure.}
-\end{minipage}
 \label{predictive}
+\end{minipage}
 \end{figure}
 
 
@@ -95,8 +101,8 @@ The bottom three panels of Figure \ref{predictive} show density estimates and 90
 \includegraphics[width=.9\textwidth]{toy_ex/precision}
 \begin{minipage}{.8\textwidth}
 \caption{\small Left: Histograms of the mean squared error based on posteriors for these models. Right: The widths of the 95\% posterior credible intervals for $\mu_g$ under the three hierarchical models, arranged by the width for the true model. Intervals which failed to cover the true value are colored red. The dashed lines correspond approximately to credible intervals with independent uniform priors on $\mu_g$.}
-\end{minipage}
 \label{precision}
+\end{minipage}
 \end{figure}
 
 
@@ -216,7 +222,8 @@ The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq 
 Given $\alpha$ and $\zeta$, the $\nu_g$ are conditionally independent. Derivations of the full conditionals are given in the Appendix.
 
 \section{Simulation study 1}
-Since the proposed BNP method uses voom weights, we did a simulation study to compare the our method to the voom-limma method for RNA-seq data. The voom-limma method fits a linear model to the data under the same transformation conditional on the same voom quality weights, but proceeds by fitting each gene independently. Thus, a comparison of the estimates obtained under BNP model to the voom-limma estimates will show the result of borrowing information across genes via the Dirichlet process prior on $\mathcal{P}$.
+\label{sec:ss1}
+Since the proposed BNP method uses voom weights, we wanted to compare BNP results to those obtained from a non-hierarchical linear model employing the same weights. This second method we will call ``voom-limma" because it was carried out using the package \texttt{limma} in \texttt{R} \citep{smyth2005limma}. The voom-limma method fits a linear model to the data under the same transformation conditional on the same voom quality weights, but proceeds by fitting each gene independently. Thus, a comparison of the estimates obtained under BNP model to the voom-limma estimates will show the result of borrowing information across genes via the Dirichlet process prior on $\mathcal{P}$.
 
 \begin{table}
 \caption{Data simulation procedure for Simulation study 1}
@@ -229,7 +236,7 @@ Since the proposed BNP method uses voom weights, we did a simulation study to co
 % Produce 6-10 such data sets\\
 
 \paragraph{TREAT}
-A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. One method, called a TREAT, tests whether the log-fold-change due to a model term is larger than a specified threshold in absolute value, i.e. it allows users to ranking genes based on the evidence of the hypothesis, $H_{gl}:|\beta_{gl}|>t$. The inclusion of this test in their software was in response to the observation that even if an effect is statistically significant, often it is uninteresting unless it has a certain magnitude. TREAT is a moderated t-test that involves an shrunken estimates of $\sigma^2_g$ \citep{treat}. For more details, see \citet{treat}.
+A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. One method, called a TREAT, tests whether the log-fold-change due to a model term is larger than a specified threshold in absolute value, i.e. it allows users to ranking genes based on the evidence of the hypothesis, $H_{gl}:|\beta_{gl}|>t$. The authors note that, ``The biological significance of a given fold-change is likely to depend on the gene and on the experimental context. On the other hand, it is reasonable to assume that there is a minimum fold-change threshold below which differential expression is unlikely to be of interest for any gene \citep[pp. 765-755]{treat}." Note that although \texttt{limma} estimates all of the $\beta_g$ independently without any pooling, TREAT is a moderated t-test that involves an shrunken estimates of $\sigma^2_g$ \citep{treat}. For more details, see \citet{treat}.
 
 We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites that $H_{gl}$ is true. We use receiver operating characteristic (ROC) curves to do this. ROC curves provide a graphical summary of the performance of a classifier by showing, as a function of the top $H$ genes as ranked by the classifier, the the proportion of cases correctly identified (true positive rate, TPR) along with the proportion of non-cases that are improperly identified (false positive rate, FPR). The top panel of Figure \ref{roc-ss1} shows a typical receiver operator characteristic curve among the ten we observed. The bottom panel shows the area under the ROC curve (AUC) up to a FPR of 0.1. For both plots we show results for each component of $\beta$ (excluding the intercept) and a range of thresholds. In our simulations the BNP method tended to outperform \texttt{limma} on average. Note that while \texttt{limma} can perform tests with a threshold of zero, there is no comparable result for the BNP model, since this hypothesis has probability zero. The exception seems to be for the parental half-difference. For that particular set of tests, both \texttt{limma} and BNP appear to have similar accuracy.
 %The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin.
@@ -238,8 +245,10 @@ We can compare the ranking given by \texttt{limma} to ones based on posterior pr
 \begin{figure}[ht!]
 \centering
 \includegraphics[height=.8\textheight]{ss1-roc-auc}
-\caption{ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is made between BNP and limma.}
+\begin{minipage}{.8\textwidth}
+\caption{\small ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is made between BNP and limma.}
 \label{roc-ss1}
+\end{minipage}
 \end{figure}
 
 We also compared the accuracy of point estimate under the two models. Here we expect BNP to do much better than \texttt{limma}. This is because \texttt{limma} produces point estimates for $\beta_g$ without any pooling, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller that those for \texttt{limma}.
@@ -249,11 +258,12 @@ We also compared the accuracy of point estimate under the two models. Here we ex
 \includegraphics[width=.8\textwidth]{ss1-mspe}
 \begin{minipage}{.8\textwidth}
 \caption{\small Mean squared prediction error for each effect for simulation study 1. Comparison is made between BNP and limma.}
-\end{minipage}
 \label{mspe-ss1}
+\end{minipage}
 \end{figure}
 
 \section{Simulation study 2}
+\label{sec:ss2}
 Much of the recent methods proposed for the analysis of RNA-seq data are based on an assumption that repeated sequencing of the same sample would produce Poisson distributed counts. For example, \cite{mccarthy} motivates the negative binomial model by showing that it has the right mean-variance relationship given the the above assumption and an assumption that the coefficient of variation is for constant within a gene. A popular approach is to use a negative binomial generalized linear model with log link function.
 
 To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts ($y_{gn}$) were exponentiated and rounded to obtain the simulated counts, $C_{gn}$. For each simulated data set, we analyzed the data using our BNP method and also with two popular count-based methods, \texttt{edgeR} and \texttt{DESeq2}, the latter both with and without independent normal priors on the $\beta$s \citep{edger2010,deseq2014}. For purposes of comparison, we considered accuracy of point estimation via mean squared prediction error and accuracy in identifying interesting genes using ROC curve.
@@ -276,8 +286,8 @@ Both \texttt{edgeR} and \texttt{DESeq2}  provide threshold tests similar to TREA
 \includegraphics[height=.8\textheight]{ss2-roc-auc2}
 \begin{minipage}{.8\textwidth}
 \caption{\small ROC curves for a typical simulation and AUC for testing whether absolute effect sizes exceed a threshold for various thresholds for simulation study 2. Comparison is between BNP, edgeR and DESeq2 with and without independent normal priors for $\beta$.}
-\end{minipage}
 \label{ss2-roc}
+\end{minipage}
 \end{figure}
 
 % Mean squared prediction error
@@ -288,8 +298,8 @@ For each simulation we computed the mean squared prediction error (MSPE) corresp
 \includegraphics[width=.8\textwidth]{ss2-mspe}
 \begin{minipage}{.8\textwidth}
 \caption{\small Comparing the accuracy of estimation of $\beta_g$ for BNP, edgeR and DESeq2. Results show the average squared prediction error for 10 simulated data sets.}
-\end{minipage}
 \label{ss2-mspe}
+\end{minipage}
 \end{figure}
 
 
@@ -330,8 +340,8 @@ In the original paper, a the results of a set of hypothesis tests was used to cl
 \includegraphics[width=\textwidth]{orig-compare}
 \begin{minipage}{.8\textwidth}
 \caption{\small Posterior probabilities for low- and high-parent gene heterosis hypotheses for subsets of genes classified as discoveries and non-discoveries in the original article (Paschold et al. 2012).}
-\end{minipage}
 \label{orig-compare}
+\end{minipage}
 \end{figure}
 
 Figure \ref{het-shrink} shows how the nonparametric model shrinks estimates. Genes categorized as showing evidence of extreme gene heterosis in the original paper are represented as black points. The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect overlayed on a bivariate histogram of the independent estimates for all genes. The right
@@ -344,8 +354,8 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 \includegraphics[width=.7\textwidth]{exemplars}
 \begin{minipage}{.8\textwidth}
 \caption{\small Plots of the exemplar genes from Table \ref{counts}, illustrating presence and absence of patterns of heterosis. The points are jittered horizontally and displayed on the scale of log counts per million. The uncertainty intervals shown are 90\% credible intervals from the fitted BNP model.}
-\end{minipage}
 \label{exemplars}
+\end{minipage}
 \end{figure}
 
 \citet{landau2016high} undertook an analysis of the same data. They modeled the counts directly as Poisson, using a generalized linear model with log link and gene-specific linear predictors as well as a gene-specific overdispersion parameter. It is interesting to compare their results to ours as their method was also fully Bayesian. They assumed independence in the distribution of the linear predictors. Table \ref{bayes-compare1} shows a comparison of the posterior probabilities found by our method to Landau's binned into five intervals for each of the four types of extreme heterosis. While there is a fair amount of agreement between these two methods on the genes with highest and lowest probabilities of heterosis, the differences between the inferences are considerable.
@@ -463,30 +473,30 @@ While we cannot say from these comparisons whether one model is better than anot
 \iftoggle{thesis}{
 On a different note, \citet{landau2016high} found that when an independent normal model was assumed for $\beta_{gl}$, their posterior distributions were well approximated by a normal distribution matching the first two posterior moments. This is convenient because computation of these moments requires minimal storage, as running means can be used to update these after each iteration of the MCMC chain.
 
-Figure \ref{compare-to-approx} shows full posterior distributions and normal approximations for each component of $\beta_g$ for four randomly selected genes. The quality of the moment-based approximation is satisfactory in some cases but not in others. Due to the discrepencies displayed here, we would recommend basing inference on the full posterior, rather than a normal approximation. In our experience, multimodality in posterior plots such as Figure \ref{compre-to-approx} can be suggestive that the MCMC has not converged. However, the traceplots for these parameters (Figure \ref{mixing}) do not indicate this to be the case; rather, we suspect this is a feature of the nonparametric model. For reference, the data and estimated mean expression levels are displayed in Figure \ref{compare-cis}.
+Figure \ref{compare-to-approx} shows full posterior distributions and normal approximations for each component of $\beta_g$ for four randomly selected genes. The quality of the moment-based approximation is satisfactory in some cases but not in others. Due to the discrepencies displayed here, we would recommend basing inference on the full posterior, rather than a normal approximation. In our experience, multimodality in posterior plots such as Figure \ref{compare-to-approx} can be suggestive that the MCMC has not converged. However, the traceplots for these parameters (Figure \ref{mixing}) do not indicate this to be the case; rather, we suspect this is a feature of the nonparametric model. For reference, the data and estimated mean expression levels are displayed in Figure \ref{compare-cis}.
 %figures for 4 random genes
 \begin{figure}
 \includegraphics[width=\textwidth]{sample_genes_cis}
 \begin{minipage}{.8\textwidth}
 \caption{Posterior distributions of $\beta_g$ for 4 randomly selected genes (red). Normal approximations based on the first two posterior moments are also shown (black). Line segments representing 90\% credible intervals are drawn in the lower part of each plot. }
-\end{minipage}
 \label{compare-to-approx}
+\end{minipage}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width=.8\textwidth]{sample_genes_trace}
 \begin{minipage}{.8\textwidth}
 \caption{Traceplots of $\beta$ for randomly selected genes. 250 thinned samples for each independent Markov chain, the chain identified by color, are shown.}
-\end{minipage}
 \label{mixing}
+\end{minipage}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width=.7\textwidth]{sample_genes_mean}
 \begin{minipage}{.8\textwidth}
 \caption{Adjusted log-cpm for randomly selected genes by genotype (black) and corresponding posterior means and 90\% confidence intervals for the mean expression (red).}
-\end{minipage}
 \label{compare-cis}
+\end{minipage}
 \end{figure}
 }
 
@@ -501,11 +511,12 @@ Figure \ref{compare-to-approx} shows full posterior distributions and normal app
 \begin{minipage}{.8\textwidth}
 \caption{\small The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect for genes classified as heterotic in Paschold et al. (2012) overlayed on a bivariate histogram of the independent estimates for all genes. The right
 panel shows the corresponding estimates for our analysis overlayed on a posterior pointwise estimate of $\mathcal{P}$. In this second plot we can see significant shrinkage toward the regions where $\mathcal{P}$ puts more probability in the posterior.}
-\end{minipage}
 \label{het-shrink}
+\end{minipage}
 \end{figure}
 
 \section{Discussion}
+\label{sec:discussion}
 Hierarchical models have an important role in problems where, as is true in gene expression, the number of model parameters is much larger than the number of subjects. By modeling the parameters, we use the ``between-gene" information in the data to moderate our inferences about individual genes . The use of hierarchical models for gene expression analyses is standard. Empirical evidence suggests, however, that model assumptions often made about the distribution of the gene-specific parameters are not realistic --- rather, the empirical distributions can exhibit complex shapes. However, it seems difficult to suggest a parametric alternative to the common default assumptions (independence, normality.) We have demonstrated a computationally demanding, yet feasible, alternative: a Dirichlet process prior on this unknown distribution.
 
 Our simulation studies show that the BNP methodology provides a viable alternative to more standard methods. Intuitively, we expect that it should do better than the alternative methods we considered in cases when the distribution of gene-effects has an unusual shape that contradicts independence. We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the affect of the recessesive allele in the heterozygous maize plant.
@@ -514,8 +525,8 @@ When there is only interest in expression at the level of genes, it should still
 
 
 \begin{landscape}
-\centering
 \begin{figure}
+\centering
 \includegraphics[height=.9\textheight]{pairs-shrinkage}
 \caption{Bivariate histograms of estimates of gene-specific effects, excluding intercepts. The estimates shown are posterior means obtained with the BNP method as well as estimates obtained with DESeq2 with and without independent normal shrinkage priors (MAP and MLE, respectively) are shown.}
 \label{all-shrink}
