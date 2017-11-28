@@ -177,33 +177,10 @@ where $\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right) \ind Q$, and where 
 \begin{equation}
 \label{eq:pi}
 \pi_k = \nu_k\left(1-\sum_{l<k}\pi_l\right),
-\end{equation} so $\nu_k$ has the interpretation of the relative size of $\pi_k$ as compared to the remaining ``stick", $1-\sum_{l<k}$. Two direct consequences of (\ref{eq:pi}) are that $\op{E}(\pi_k)<\op{E}(\pi_l),\;k>l$ and that $E(\pi_k)=\alpha \left[\alpha/(\alpha+1)]^{k}$, which tell us that $\pi_k$ will tend to decay quickly for small values of  $\alpha$ and slowly for large values. 
+\end{equation} so $\nu_k$ has the interpretation of the relative size of $\pi_k$ as compared to the remaining ``stick", $1-\sum_{l<k}$.
 
-$Q$ serves as a prior guess at $\mathcal{P}$, with $\alpha$ being the prior ``sample size" afforded to that guess. For large values of $\alpha$, $\pi_k$ will be small and decrease slowly, so that the expression given for $\mathcal{P}$ in (\ref{dp-def}) will allocate its mass more or less according to $Q$. If $\alpha$ is small, then $\mathcal{P}$ will allocate most of its mass to a small number of the atoms. For conjugacy, we choose $Q$ to be a product measure given by
-% \iftoggle{thesis}{
-% The use of this prior, due to \citet{ferguson}, is a distribution over probability distributions, such that for any finite disjoint partition $\{A_i\}_{i>=1}^n$ on $\mathbb{R}^p$, $\mathcal{P}$ is a random measure such that the joint distribution $\left(\mathcal{P}(A_1),\ldots,\mathcal{P}(A_n)\right) \sim \op{Dir}\left(\alpha Q(A_1),\ldots,\alpha Q(A_n)\right).$ The Dirichlet process has two parameters: $Q$, the base measure, represents a prior guess at the distribution. $\alpha$, the concentration parameter expresses the degree to which $\mathcal{P}$ will agree with $Q$ on any set $A$. This follows from the definition given above and known properties of the Dirichlet distribution, i.e., $\op{E}\left(\mathcal{P}(A)\right)=Q(A)$, and $\op{V}\left(\mathcal{P}(A)\right)=\frac{Q(A)(1 - Q(A)}{\alpha + 1}$, showing that $\mathcal{P}(A) \stackrel{p}{\rightarrow} Q(A)$ as $\alpha \rightarrow \infty$ for any set $A$.
-% }{}
-% By modeling $\mathcal{P}$ with a Dirichlet process one can be noninformative about the overall shape of $\mathcal{P}$, allowing for irregular shapes, multimodality, and so forth. An argument can be made that by incorporating our uncertainty about these features of the distribution is required for coherent interpretation of the posterior distribution \citep{walker2010bayesian}. For more information about the properties of the DP, see \cite{ferguson}.
-%
-% As shown by \citet{sethuraman}, it follows from the definition of the Dirichlet process that $\mathcal{P}$ is almost surely discrete and realizations of $\mathcal{P}$ can be produced by the following stick-breaking construction:
-%
-% Let
-% \begin{equation}
-% \mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)}.
-% \end{equation}
-% Here $\delta_{(.)}$ is the Dirac delta function. Note that although almost sure discreteness is a property applicable to ``draws'' from a DP, the posterior for $\mathcal{P}$ is in fact a mixture of DP \citep{antoniak}. An implication of discretness can be thought of as a ``bet on sparsity"; that there are actually a finite (but unspecified) number of unique values that $(\beta_g^\top,\sigma^2_g)$ can take.
-%  The ``atoms" distributed according to $Q$, specified by the product measure
+A consequence of (\ref{dp-def}) is that $\op{E}(\pi_k)<\op{E}(\pi_l),\;k>l$ and that $E(\pi_k)=\left[1/(\alpha+1\right]\left[\alpha/(\alpha+1)\right]^{k-1} = \alpha \left[\alpha/(\alpha+1)]^{k}$, which tell us that $\pi_k$ decreases in expectation in $k$, is decreasing quickly for small values of $\alpha$ and slowly for large values. It is important to understand that this model gives positive prior probability that $(\beta_g^\top,\sigma_g^2)=(\beta_{g'}^\top,\sigma_{g'}^2)$ for any $g$ and $g'$. Another related fact involving $\alpha$, pointed out by \citet[p. 1161]{antoniak}, is that the expected number of unique values of $(\beta_g^\top,\sigma^2_g)$ is $\sum_{i=1}^G \left[\alpha/(\alpha + i - 1)\right]$. By placing a bet on sparsity, this latent clustering behavior allows for flexibility in learning $\mathcal{P}$, without overfitting the model to the data.
 
-\begin{equation}
-\tilde{\beta}_k \sim \op{N}(m_\beta, C_\beta),\quad \tilde{\sigma}^2_k \sim \op{IG}(a_{\sigma^2}, b_{\sigma^2}),
-\end{equation}
-
-where $\op{IG}(a,b)$ is an inverse gamma distribution parameterized by shape and scale parameters, $a$ and $b$, and with density given by
-\begin{equation*}
-p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
-\end{equation*}
-
-Note that, while the Dirichlet process allows for flexibility in learning $\mathcal{P}$, it can also avoid overfitting the data. These opposing goals are accomplished simultaneously by assuming some positive prior probability that $(\beta_g^\top,\sigma_g^2)=(\beta_{g'}^\top,\sigma_{g'}^2)$ for any $g$ and $g'$.
 
 % The mixture weights, $\pi_k$,  follow a stick-breaking process \cite{sethuraman}. Using the reparameterization,
 %
@@ -224,15 +201,37 @@ Note that, while the Dirichlet process allows for flexibility in learning $\math
 Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. \citet{robinson2010} proposed a method called TMM, which uses a trimmed mean of log-fold change between two samples to robustly estimate the systemic bias. For details, see \citet{robinson2010}.
 
 \paragraph{Precision weights adjust for non-constant variance}
-Theory suggests that an RNA-seq count, $r_{gn}$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(r_{gn})=\op{E}(r_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$). Because gene expression is usually measured on the log scale, consider the delta method  approximation for a negative binomial count in terms of the log-count: $\op{Var}(\log C_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g\mu_{gn}^2)=1/\mu_{gn} + \phi_g$. In other words, for a fixed $\phi>0$, a negative binoimal assumption assumes log-counts whose variance is a decreasing function of the mean, with asymptote at $\phi_g>0$. Empirical evidence \citep{voom} suggests that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with.
+An argument in favor of the use of overdispersed Poisson models in general, and negative binomial models in particular, for RNA-seq data is that the quadratic mean-variance relationship implied by these models generally agrees with patterns observed in RNA-seq counts.  By an argument of \citet[p.4290]{mccarthy}, the variance of a count, $r_{gn}$, is $\mu_{gn} + \phi_g \mu_{gn}^2$ under the assumption that $r_{gn}$ is a mixture of Poisson with mean $\mu_{gn}$ and that $\phi_g>0$ is the coefficient of variation for the mixing distribution. In contrast, a log-normal model corresponds to a different  mean-variance relationship (using a non-standard mean parameterization with $\phi_g=\exp(\sigma^2)-1), $\phi_g \mu_{gn}^2$.
 
-\cite{voom} proposed a method called \textit{voom}, as a way to make RNA-seq data compatible with normal linear models. \textit{voom} introduces count specific precision weights, estimated from the all of the data, to compensate for the non-constant mean-variance relationship present in RNA-seq. Briefly, first a regression computed for each gene, producing a standard deviation and mean log-count. Next a smooth nonparametric regression is fit to the square root of the gene-wise standard deviations, using the mean log-counts as a predictor. The weights are then estimated using this fitted model. This procedure implies that the variance of a count is given by, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. We use \texttt{voom} in our pipline by estimating $\op{Var}_{LOWESS}(\mu)$ and plugging in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
+% Theory suggests that, absent biological variation, an RNA-seq count, $r_{gn}$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(r_{gn})=\op{E}(r_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$).
 
-Rather than assuming the mean-variance relationship of the negative binomial and allowing for an adjustment of the degree of overdispersion from gene to gene, voom's precision weighting scheme estimates the mean-variance relationship from the data and assumes that it applies both within as well as across genes. We use the precision weights as an input to our model (Section \ref{sec:model}) which estimates a gene-specific variance parameter. Our use of voom in our pipeline implies a gene-specific mean-variance relationship \textit{for the log counts} given by
-$$\op{V}(\log C|\mu)=\sigma^2_g \widehat{\op{V}_{voom}(\log C|\mu)}.$$
+Because treatment effects are usually modeled on the log scale for gene expression, consider the delta method  approximation for a overdispersed Poisson count in terms of the log-count: $\op{Var}(\log r_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g\mu_{gn}^2)=1/\mu_{gn} + \phi_g$. For the normal model, the corresponding expression is $\sigma^2_g\approx \log \phi$ for large $\mu_{gn}$.
+
+% Empirical evidence \citep{voom} suggests that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with.
+
+\cite{voom} proposed a procedure called \textit{voom}, as a way to make RNA-seq data compatible with normal linear models. voom makes a normal model for normalized log-counts a viable alternative to overdispersed Poisson models by assigning to each count a precision weight. The computation of the weights involves a nonparametric regression fit to the square root of gene-wise standard deviations, using the overall log-mean expression for each gene as a predictor. Count specific weights are selected as predicted values based on the nonparametric model fit.
+
+In addition to making viable methods based on normal distributions, \citet[pp.{voom} suggests additional reasons for preferring to use voom:
+\begin{itemize}
+\item real data display a non-ignorable decreasing trend in the negative binomial overdispersion parameter with gene abundance
+\item by adjusting for the global mean variance trend at the count level, voom should provide better precision for genes which large variation in expression versus models which only make an allowance at the gene level (via $\phi_g$)
+\end{enumerate}
+% This procedure implies that the variance of a count is given by, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. We use \texttt{voom} in our pipline by estimating $\op{Var}_{LOWESS}(\mu)$ and plugging in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
+
 
 \subsection{Priors}
-The base measure, $Q$, represents a prior guess at $\mathcal{P}$. The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we used the \texttt{estimateBetaPriorVar} function from the \texttt{DESeq2} package to set $Q$. This function chooses variances to match the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. The prior distribution for $\alpha$ was chosen by considering the implied expected number of clusters. Although is difficult to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, we cannot deal with more than about 6000 clusters. Based on these considerations, we select the prior $\alpha \sim \op{Ga}(3,3/G^{0.5})$, which implies the expected number of clusters is likely between $G^{0.5}$ and $G^{0.75}$.
+$Q$ serves as a prior guess at $\mathcal{P}$, with $\alpha$ being the prior ``sample size" attributed to that guess. For large values of $\alpha$, $\pi_k$ will be small and decrease slowly, so that the expression given for $\mathcal{P}$ in (\ref{dp-def}) will allocate its mass more or less in a way that approximates $Q$, albeit discretely. If $\alpha$ is small, then $\mathcal{P}$ will allocate most of its mass to a small number of the atoms. For conjugacy, we choose $Q$ to be a product measure of the form
+
+
+\begin{equation}
+\tilde{\beta}_k \ind \op{N}(m_\beta, C_\beta),\quad \tilde{\sigma}^2_k \ind \op{IG}(a_{\sigma^2}, b_{\sigma^2}),
+\end{equation}
+
+where $\op{IG}(a,b)$ is an inverse gamma distribution parameterized by shape and scale parameters, $a$ and $b$, and with density given by
+\begin{equation*}
+p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
+\end{equation*}
+The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we used the \texttt{estimateBetaPriorVar} function from the \texttt{DESeq2} package to set $Q$. This function chooses variances to match the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. The prior distribution for $\alpha$ was chosen by considering the implied expected number of clusters. Although is difficult to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, we cannot deal with more than about 6000 clusters. Based on these considerations, we select the prior $\alpha \sim \op{Ga}(3,3/G^{0.5})$, which implies the expected number of clusters is likely between $G^{0.5}$ and $G^{0.75}$.
 
 %For $\beta_gl$; $l=2,3,4,5$, these were obtained using the \texttt{estimateBetaPriorVar} from the \texttt{DESeq2} package using the ``quantile" method. For $\beta_g1$ and $\sigma^2_g$, a similar m
 
