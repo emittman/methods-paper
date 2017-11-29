@@ -32,12 +32,15 @@ save(diag70, file="convergence7_10.RData")
 
 library(ggplot2)
 
-ggplot(diag13, aes(sample=geweke)) + geom_qq(fill="blue", alpha=.5, pch=".") +
-  facet_grid(sim~v) + geom_abline(slope=1)#stat_function(fun = dnorm)
+rbind(diag13,diag46,diag70) %>%
+  mutate(v=factor(v, levels=1:5, labels=c("intercept", "parental HD", "hybrid", "hybrid HD", "flow cell"))) %>%
+  ggplot(aes(sample=geweke, group=sim)) + geom_qq(alpha=.5, pch=".") +
+  facet_grid(~v) + geom_abline(slope=1, lty=2, color="red")+
+  theme_bw()#stat_function(fun = dnorm)
 
 library(dplyr)
 mutate(diag13, v=factor(v, levels=1:5, labels=c("intercept", "parental HD", "hybrid", "hybrid HD", "flow cell"))) %>%
 ggplot(aes(x=n_eff)) + geom_histogram() +
   facet_grid(sim~v) + scale_x_continuous(breaks=c(0,2000,4000,6000), limits=c(0,6000))
 
-ddply(diag13, .(v,sim), summarise, min_neff = min(n_eff))
+ddply(diag13, .(v), summarise, min_neff = min(n_eff))
