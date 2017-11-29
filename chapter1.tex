@@ -324,6 +324,7 @@ For this set of simulations, we determined the true values of the gene-specific 
 % \end{table}
 % Produce 6-10 such data sets\\
 
+\subsubsection{Classification accuracy}
 We can compare the ranking given by these tests to ones based on posterior probabilites that $H_{g\ell}$ is true. We use receiver operating characteristic (ROC) curves to do this. ROC curves provide a graphical summary of the performance of a classifier by showing, as a function of the top $H$ genes as ranked by the classifier, the proportion of cases correctly identified (true positive rate, TPR) along with the proportion of non-cases that are improperly identified (false positive rate, FPR). The top panel of Figure \ref{roc-ss1} shows a typical ROC curve among the ten we observed. The bottom panel shows the area under the ROC curve (AUC) up to a FPR of 0.1. For both plots we show results for each component of $\beta$ (excluding the intercept) and a range of thresholds. In our simulations the BNP method was more accurate than limma on average in identifying genes with effects exceeding a threshold in absolute value.
 
 % Note that while \texttt{limma} can perform tests with a threshold of zero, there is no comparable result for the BNP model, since this hypothesis has probability zero. %The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin.
@@ -338,7 +339,8 @@ We can compare the ranking given by these tests to ones based on posterior proba
 \end{minipage}
 \end{figure}
 
-We also compared the accuracy of point estimate under the two models. For the BNP model, we take the posterior mean as our point estimate for $\beta_{g\ell}$. Here we expect BNP to do much better than limma because limma does not use a hierarchical model for shrinkage, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller that those for limma.
+\subsubsection{Precision of estimated effects}
+We also compared the precision of point estimates obtained under the two models. For the BNP model, we take the posterior mean as our point estimate for $\beta_{g\ell}$. Here we expect BNP to do much better than limma because limma does not use a hierarchical model for shrinkage, whereas the BNP provides shrinkage toward the mass of the underlying distribution of the $\beta_g$s. Figure \ref{mspe-ss1} shows that this is indeed the case; the mean squared prediction errors averaging across genes are uniformly smaller that those for limma.
 
 \begin{figure}[ht!]
 \centering
@@ -359,14 +361,13 @@ Much of the recent methods proposed for the analysis of RNA-seq data are based o
 \item Sample $y_{gn} \sim \op{N}(x_{n}^\top\beta_g, \sigma^2_g/w_{gn})$
 \item Set $r_{gn} = \op{Round} \left\{ 2^{y_{gn} + \log_2(10^6) - \log_2(\bar{R}_{\cdot})} \right\}$
 \end{enumerate}
-\end{table}
 
 
 % Ranking accuracy (ROCs)
 \subsubsection{Classification accuracy}
 The methodologies of \citet{edger2010} and \citet{deseq2014} implemented in the \texttt{R} packages,\texttt{edgeR} and \texttt{DESeq2}, both provide threshold tests analogous to TREAT in \texttt{limma}. \citet{deseq2014} provide the option of employing empirical Bayes priors to $\beta_g$; we show results both with (shrunk) and without (unshrunk). We again used ROC to compare the accuracy in gene ranking between these three methods. For this simulation, unlike the first, the true parameters for each gene are unique. 
 
-Comparing AUC across the ten simulations (Figure \ref{ss2-roc}), we see that, in most cases, DESeq2 provides better rankings without the empirical Bayes prior. The AUCs for the other three methods are comparable, with small differences depending on the effect type and the threshold. Overall, it appears that BNP and DESeq2 (unshrunk) have an edge over edgeR and that BNP may have a slight advantage over the other methods when the threshold is set fairly high.
+Comparing AUC across the ten simulations (Figure \ref{ss2-roc}), we see that, in most cases, \texttt{DESeq2} provides better rankings without the empirical Bayes prior. The AUCs for the other three methods are comparable, with small differences depending on the effect type and the threshold. Overall, it appears that BNP and \texttt{DESeq2} (unshrunk) have an edge over edgeR and that BNP may have a slight advantage over the other methods when the threshold is set fairly high.
 
 \begin{figure}[ht!]
 \centering
@@ -379,7 +380,7 @@ Comparing AUC across the ten simulations (Figure \ref{ss2-roc}), we see that, in
 
 \subsubsection{Precision of estimated effects}
 % Mean squared prediction error
-Plots of MSPE for the 10 simulations, shown in Figure \ref{ss2-mspe}, show that BNP compares favorably to the other methods, producing estimates that are closer to the truth, on average, that the count-based methods we tried. We expected that the empirical Bayes version of DESeq2 would do better than the unshrunk version, since regularization of estimates typically reduces MSE. However, that was true only for the hybrid half-difference and the flow cell effect; for the parental half-difference and the hybrid effect, the unshrunk DESeq2 estimates were more accurate.
+Plots of MSPE for the 10 simulations, shown in Figure \ref{ss2-mspe}, show that BNP compares favorably to the other methods, producing estimates that are closer to the truth, on average, that the count-based methods we tried. We expected that the empirical Bayes version of \texttt{DESeq2} would do better than the unshrunk version, since regularization of estimates typically reduces MSE. However, that was true only for the hybrid half-difference and the flow cell effect; for the parental half-difference and the hybrid effect, the unshrunk \texttt{DESeq2} estimates were more accurate.
 
 \begin{figure}[ht!]
 \centering
@@ -390,7 +391,7 @@ Plots of MSPE for the 10 simulations, shown in Figure \ref{ss2-mspe}, show that 
 \end{minipage}
 \end{figure}
 
-\subsection{Calibration of posterior probabilities
+\subsection{Calibration of posterior probabilities}
 Due to being fully Bayesian, the BNP method enjoys a further advantage over these other methods in that, by using posterior samples, we can evaluate probabilites of hypotheses with composite null parameter spaces which cannot be done using any of the other methods we tried. The ROC plots do suggest that the posterior probabilites do a good job with ranking the genes. However, because they are interpretable as probabilites, we can still question their accuracy relative to the frequency of true positives.
 
 We now turn to four types of heterosis mentioned earlier in Section \ref{intro-paschold}. These are defined in terms of our parameterization of the model matrix in Table \ref{def-heterosis}.
@@ -425,13 +426,15 @@ low-parent Mo17xB73  & $\min\{\mbox{B73,Mo17}\} > \mbox{Mo17xB73}$ & $-|\beta_{g
 \label{analysis}
 To fit the Paschold data, we ran 4 chains, each for 40,000 iterations after 30,000 iterations of warmup. The samples were thinned by a factor of 40, for a total of 160,000 post burn-in draws (4,000 thinned post burn-in draws) for each gene-specific parameter and $\alpha$. Posterior probabilities of the four heterosis hypotheses as well as posterior first- and second-moments for the gene-specific parameters, $\beta_g$ and $\sigma_g$, were computed using all the draws. Potential scale reduction factors were calculated for all of the gene-specific parameters and $\alpha$. Rhats for all parameters were less than 1.1.
 
-In \citet{paschold}, the results of a series of hypothesis tests were combined to classify genes into nine categories specifying the relationships between mean expression of each hybrid variety and the two parental lines. In Figure \ref{orig-compare}, we show histograms of posterior probabilities pertaining to high- and ow-parent gene heterosis for the genes subsetted by whether or not they were classified as ``discoveries'' in the original paper. High-parent heterosis corresponds to genes for which the mean expression of the hybrid is higher than the more highly expressed parent and low-parent heterosis where it is lower than the less expressed parent. Generally speaking, the posterior probabilities tend to agree with the categorization --- particularly for non-discoveries --- however, a number of discoveries have low posterior probabilities in our analysis. This is likely due to borrowing of information across genes leading to shrinkage toward general patterns of expression, where both low- and high- parental expression were uncommon (\citet{paschold} found evidence of these extreme patterns in less than 1\% of genes.) We also note that a small number of non-discoveries are found to have high-posterior heterosis probabilities. Due to the multidimensional shrinkage featured by the model, it can be difficult to sort out what accounts for the difference in some cases.
+\subsection{Comparison to original results}
+
+In \citet{paschold}, the results of a series of hypothesis tests were combined to classify genes into several categories characterizing an ordering or partial ordering of the low-parent, high-parent and hybrid expression levels \citep[p.2448]{paschold}. LPH and HPH each correspond to a union of 2 of these categories ($\{7,8\}$ and $\{5,6\}$, respectively.) In Figure \ref{orig-compare}, we show histograms of posterior probabilities pertaining to high- and ow-parent gene heterosis for the genes subsetted by whether or not they were classified as ``discoveries'' in the original paper. High-parent heterosis corresponds to genes for which the mean expression of the hybrid is higher than the more highly expressed parent and low-parent heterosis where it is lower than the less expressed parent. Generally speaking, the posterior probabilities tend to agree with the categorization --- particularly for non-discoveries --- however, a number of discoveries have low posterior probabilities in our analysis. This is likely due to borrowing of information across genes leading to shrinkage toward general patterns of expression, where both low- and high- parental expression were uncommon (\citet{paschold} found evidence of these extreme patterns in less than 1\% of genes.) We also note that a small number of non-discoveries are found to have high-posterior heterosis probabilities. Due to the multidimensional shrinkage featured by the model, it can be difficult to sort out what accounts for the difference in some cases.
 
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{orig-compare}
 \begin{minipage}{.8\textwidth}
-\caption{\small Posterior probabilities for low- and high-parent gene heterosis hypotheses for subsets of genes classified as discoveries and non-discoveries in the original article (Paschold et al. 2012).}
+\caption{\small Posterior probabilities for low- and high-parent gene heterosis hypotheses for subsets of genes classified as discoveries and non-discoveries in the original paper (Paschold et al. 2012).}
 \label{orig-compare}
 \end{minipage}
 \end{figure}
@@ -450,6 +453,8 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 \end{minipage}
 \end{figure}
 
+\subsection{Comparison of heterosis results to parametric analysis}
+
 \citet{landau2016high} undertook an analysis of the same data. They modeled the counts directly with a Poisson distributions, using a generalized linear model with log link and gene-specific linear predictors as well as a gene-specific variance parameter for a lognormal mixture on the means. They also assumed a parametric distribution for the gene-specific parameters. Their hierarchical model assumed independent normal priors on the coefficient components, $\beta_{g\ell}$. Table \ref{bayes-compare1} shows a comparison of the posterior probabilities found by our method to Landau's binned into five intervals for each of the four types of extreme heterosis. While there is a fair amount of agreement between these two methods on the genes with highest and lowest probabilities of heterosis, the differences between the inferences are considerable.
 
 % latex table generated in R 3.4.2 by xtable 1.8-2 package
@@ -457,7 +462,7 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 \begin{table}[ht]
 \footnotesize
 \centering
-\caption{Two-way tables comparing the posterior probabilities of low-parent gene heterosis for all genes in the Paschold (2012) data set found by BNP and Landau (2016).}
+\caption{Two-way tables comparing the posterior probabilities of low-parent gene heterosis for all genes in the Paschold et al. (2012) data set found by BNP and Landau (2016).}
 \label{bayes-compare1}
 % % \begin{tabular}{rrrrrr}
 % % &  &\multicolumn{4}{c}{Landau}\\
@@ -519,7 +524,7 @@ Low-parent heterosis Mo17$\times$B73.
 \begin{table}[ht]
 \footnotesize
 \centering
-\caption{Two-way tables comparing the posterior probabilities of high-parent heterosis for all genes in the Paschold (2012) data set found by BNP and Landau (2016).}
+\caption{Two-way tables comparing the posterior probabilities of high-parent heterosis for all genes in the Paschold et al. (2012) data set found by BNP and Landau (2016).}
 \label{bayes-compare2}
    \begin{tabular}{rrrrrrr|r}
 &  &\multicolumn{6}{c}{Landau (2016)}\\
@@ -563,14 +568,15 @@ From the marginal distributions of probabilities, we see that BNP finds lower ch
 While we cannot say from these comparisons whether one model is better than another, they serve to highlight the impact that distributional assumptions can have in detecting patterns of gene expression. Given our belief that models like that of \citet{landau2016high} and \citet{deseq2014} make unreasonable assumptions about the distribution of the gene-specific parameters, we expect that the BNP probabilites incorporate more information about the broader patterns of expression exhibited in the data.
 
 \iftoggle{thesis}{
-\section{Some practical considerations}
+\subsection{Some practical considerations}
 On a different note, \citet{landau2016high} found that when an independent normal model was assumed for $\beta_{gl}$, their posterior distributions were well approximated by a normal distribution matching the first two posterior moments. This is convenient because computation of these moments requires minimal storage, as running means can be used to update these after each iteration of the MCMC chain.
 
 Figure \ref{compare-to-approx} shows full posterior distributions and normal approximations for each component of $\beta_g$ for four randomly selected genes. The quality of the moment-based approximation is satisfactory in some cases but not in others. Due to the discrepencies displayed here, we would recommend basing inference on the full posterior, rather than a normal approximation. %In our experience, multimodality in posterior plots such as Figure \ref{compare-to-approx} can be suggestive that the MCMC has not converged. However, 
 The traceplots for these parameters (Figure \ref{mixing}) show no indication of a lack of convergence. %this to be the case; rather, we suspect this is a feature of the nonparametric model. 
 For reference, the data and estimated mean expression levels are displayed in Figure \ref{compare-cis}.
 %figures for 4 random genes
-\begin{figure}
+\begin{figure}[ht!]
+\centering
 \includegraphics[width=\textwidth]{sample_genes_cis}
 \begin{minipage}{.8\textwidth}
 \caption{Posterior distributions of $\beta_g$ for 4 randomly selected genes (red). Normal approximations based on the first two posterior moments are also shown (black). Line segments representing 90\% credible intervals are drawn in the lower part of each plot. }
@@ -578,7 +584,8 @@ For reference, the data and estimated mean expression levels are displayed in Fi
 \end{minipage}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[ht!]
+\centering
 \includegraphics[width=.8\textwidth]{sample_genes_trace}
 \begin{minipage}{.8\textwidth}
 \caption{Traceplots of $\beta$ for randomly selected genes. 250 thinned samples for each independent Markov chain, the chain identified by color, are shown.}
@@ -586,7 +593,8 @@ For reference, the data and estimated mean expression levels are displayed in Fi
 \end{minipage}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[ht!]
+\centering
 \includegraphics[width=.7\textwidth]{sample_genes_mean}
 \begin{minipage}{.8\textwidth}
 \caption{Adjusted log-cpm for randomly selected genes by genotype (black) and corresponding posterior means and 90\% confidence intervals for the mean expression (red).}
@@ -616,7 +624,7 @@ Hierarchical models have an important role in problems where, as is true in gene
 
 Our simulation studies show that the BNP methodology provides a viable alternative to more standard methods. Intuitively, we expect that it should do better than the alternative methods we considered in cases when the distribution of gene-effects has an unusual shape that contradicts independence. We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the affect of the recessesive allele in the heterozygous maize plant.
 
-When there is only interest in expression at the level of genes, it should still be valuable to have a model flexible enough to handle detectable patterns in the data. Figure \ref{all-shrink} shows side-by-side plots of the distribution of the estimated components by BNP and DESeq2, which assumes independent priors on the gene-specific effects (excluding the intercept). The BNP estimates are shrunk toward the mass of the distribution, whereas DESeq2 estimates are shrunk toward the origin.
+When there is only interest in expression at the level of genes, it should still be valuable to have a model flexible enough to handle detectable patterns in the data. Figure \ref{all-shrink} shows side-by-side plots of the distribution of the estimated components by BNP and \texttt{DESeq2}, which assumes independent priors on the gene-specific effects (excluding the intercept). The BNP estimates are shrunk toward the mass of the distribution, whereas \texttt{DESeq2} estimates are shrunk toward the origin.
 
 
 \begin{landscape}
