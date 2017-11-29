@@ -1,7 +1,7 @@
 \section{Introduction}
-Heterosis, or ``hybrid vigor," refers to biological differences seen in offspring of two inbred parents, which give the hybrid qualities superior to either parent. While the phenomenon is well-known and widely exploited, its causes at the molecular level are not\citep{paschold}. New technologies that can simultaneously measure the expression of tens of thousands of genes provide an opportunity to shed light on these mechanisms.
+Heterosis, or hybrid vigor, refers to biological differences seen in offspring of two inbred parents, which give the hybrid qualities superior to either parent. While the phenomenon is well-known and widely exploited, its causes at the molecular level are not well understood \citep{paschold}. New technologies that can simultaneously measure the expression of tens of thousands of genes provide an opportunity to shed light on these mechanisms.
 
-Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies \citep{wang2009rna}. Statistical methods to analyze RNA-seq data have proliferated \citep{voom,deseq2014,mccarthy,liu,landau}. Because cost limits the number of samples that can be sequenced, the identification of interesting genes in gene expression studies falls into the ``$n \ll p$" paradigm. In this paradigm, noise in the data tends to dominate the signal. Various statistical methods have been developed to mitigate this problem. One is to employ appropriate hierarchical models. Hierarchical, or multi-level, models provide a mechanism to borrow strength, across groups present in the data by learning the underlying distribution of the first-level model parameters. The case for using hierarchical models for RNA-seq data is compelling because there are a large number of genes, potentially providing substantial information about the distribution of gene-specific parameters, and a strong incentive to borrow information since there are often few samples with which to estimate any given gene-specific parameter. \citet{niemi} observed that the choice of parametric family can impact both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results. To avoid misspecification of the distribution of gene-specific parameters, one might choose to model them nonparametrically; for example, \citet{liu} proposed a semiparametric model for differential expression. In their model, the parameter representing the mean log-fold-change between the two treatments was modeled with a Dirichlet process (DP).
+Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies \citep{wang2009rna}. Statistical methods to analyze RNA-seq data have proliferated \citep{voom,deseq2014,mccarthy,liu,landau}. Because cost limits the number of samples that can be sequenced, the identification of interesting genes in gene expression profiling studies falls into the ``$n \ll p$" paradigm. In this paradigm, noise in the data tends to dominate the signal. Various statistical methods have been developed to mitigate this problem. One general approach is to hierarchical modeling. Hierarchical, or multi-level, models provide a mechanism to borrow strength across groups present in the data by learning the underlying distribution of the first-level model parameters. The case for using hierarchical models for RNA-seq data is compelling because there are a large number of genes, potentially providing substantial information about the distribution of gene-specific parameters, as well as a strong incentive to borrow information since there are often few samples with which to estimate any given gene-specific parameter. \citet{niemi} observed that the choice of parametric family for the hierarchical model impacts both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results. To avoid misspecification of the distribution of gene-specific parameters, one might choose to model them nonparametrically; for example, \citet{liu} proposed a semiparametric model for differential expression. In their model, the parameter representing the mean log-fold-change between the two treatments was modeled with a Dirichlet process (DP).
 
 RNA-seq allows for direct mapping of reads to genetic features, so measurements are counts of total reads. While most RNA-seq methods we have seen use the negative binomial (NB) distribution \citet{mccarthy} provided a theoretical motivation for directly modeling the counts via a Poisson mixture, \citet{voom} demonstrated a method for estimating precision weights, making a normal data model a viable alternative to count-based methods. We choose to take advantage of the normal model, which allows us to exploit conditional conjugacy work with lower-dimensional sufficient statistics. This eases the computation burden, which can be a considerable benefit when conducting fully Bayesian inference.
 %
@@ -72,18 +72,18 @@ The data come from \cite{paschold}. We work with the count of total aligned read
 \centering
 \begin{minipage}{.8\textwidth}
 \includegraphics[width=\textwidth]{count_dist_by_sample}
-\caption{Distribution of total read counts plus 1 by sample, grouped by genotype, for all 16 RNA-seq samples in the Paschold (2012) data}
+\caption{Distribution of total read counts plus 1 by sample, grouped by genotype, for all 16 RNA-seq samples in the maize data.}
 \label{fig:count-dist}
 \end{minipage}
 \end{figure}
 
-The counts range in value from 0 to 38,006 with a mean value of 255.5 and a median value of 37. Figure \ref{fig:count-dist} shows the distribution of the total read counts plus 1 by sample. While the distributions look fairly consistent across samples, there are some differences in the lower quartiles. The replicate numbers on the x-axis can be used to identify the flow cell; replicates 1 and 2 were sequenced in flow cell 1, while replicates 3 and 4 were sequenced in flow cell 2. The differences between the flow cells shown in the lower quartile of the boxplots for the hybrids suggest that flow cell 1 was more thouroughly sequenced than flowcell 2.
+The counts range in value from 0 to 38,006 with a mean value of 255.5 and a median value of 37. Figure \ref{fig:count-dist} shows the distribution of the total read counts plus 1 by sample. While the distributions look fairly consistent across samples, there are some differences in the lower quartiles. The replicate numbers on the x-axis can be used to identify the flow cell; replicates 1 and 2 were sequenced in flow cell 1, while replicates 3 and 4 were sequenced in flow cell 2. The differences between the flow cells shown in the lower quartile of the boxplots for the hybrids suggest that flow cell 1 was more thoroughly sequenced than flowcell 2.
 
 
-To identify genes which are likely to play a role in heterosis, we look for genes where the ordering of the average expression levels for the 4 genotypes is consistent with a set of particular orderings. We say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. To be precise, we define multiple kinds of heterosis in terms of the mean expression levels of the genotypes. High-parent heterosis (HPH) occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis (LPH) occurs when the expected value of a hybrid is lower than that of both parents. The first two genes (rows) in Table \ref{counts} are exemplars of HPH and LPH, respectively. The third gene appears that B73$\times$Mo17 displays LPH while Mo17$\times$B73 displays HPH, and in the last gene the hybrid expression appears to lie between that of the parents. Here too, we see the apparent flow cell effects, since within a genotype there appear to be consistent differences between the first and second pairs of replicates.
+To identify genes which are likely to play a role in heterosis, we look for genes where the ordering of the average expression levels for the 4 genotypes exhibits one of several patterns. We say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. To be precise, we define multiple kinds of heterosis in terms of the mean expression levels of the genotypes. High-parent heterosis (HPH) occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis (LPH) occurs when the expected value of a hybrid is lower than that of both parents. The first two genes (rows) in Table \ref{counts} are exemplars of HPH and LPH, respectively. The third gene appears that B73$\times$Mo17 displays LPH while Mo17$\times$B73 displays HPH, and in the last gene the hybrid expression appears to lie between that of the parents. Here too, we see the apparent flow cell effects, since within a genotype there appear to be consistent differences between the first and second pairs of replicates.
 
 \section{Bayesian nonparametric model}
-The advantage of hierarchical modeling generally is that that by assumming a distribution on some model parameters, we can improve inference by borrowing information, i.e. allowing data which doesn't have a direct dependence on a parameter to inform indirectly about the parameter through the parameter's distribution. Misspecification of the form of that hierarchical distribution can lead to incorrect borrowing of information. Often, this issue is overlooked. One reason is that in many cases it is difficult to check whether the hierarchical distribution is misspecified, another reason is that there can be utility to using a hierarchical model, even when the hierarchical distribution is misspecified.
+The advantage of hierarchical modeling generally is that that by assumming a distribution on some model parameters, we can improve inference by borrowing information, i.e. allowing data which doesn't have a direct dependence on a parameter to inform indirectly about the parameter through the parameter's distribution. Misspecification of the form of that hierarchical distribution can lead to incorrect borrowing of information. In practice, this issue is often overlooked. One reason for this is that in many cases it is difficult to check whether the hierarchical distribution is misspecified. Another reason is that there can be utility to using a hierarchical model, even when the hierarchical distribution is misspecified.
 
 \subsection{Illustration}
 \label{subsec:illustration}
@@ -91,9 +91,9 @@ To provide an example of the ideas in the preceding paragraph and to motivate th
 % Let $y_{gn},\; g=1,\ldots,200,\;n=1,2,3$, and suppose we are interested in hypotheses concerning $\op{E}(y_{gn})=\mu_g$. Suppose further that we can reasonably assume that $y_{gn}|\mu_g \ind \op{N}(\mu_g,\sigma^2)$, i.e. the data are conditionally normal with unknown means and unknown constant error variance. 
 We simulate data as follows, $\mu_g \ind 1/3\op{N}(-4,1)+1/3\op{N}(0,1)+1/3\op{N}(4,1)$. Conditional on $\mu$, we simulate $y_{gn}|\mu_g \ind \op{N}(\mu_g,\sigma^2=2^2),\; g=1,\ldots,200,\;n=1,2,3$. Now, suppose we observe $y$ and assume the (true) data model, but $\mu_g$ and the common error variance, $\sigma^2$, are all unknown. A histogram of the sample means, $\hat{\mu}_g$ is shown in the top panel of Figure~\ref{predictive}. Next, we fit three Bayesian models to the data.
 \begin{enumerate}
-\item[Normal model] $\mu_g \ind \op{N}(\eta, \tau^2)$, with diffuse proper priors on $\eta$ and $\tau^2$
-\item[Correct model] $\mu_g \sim \pi_1\op{N}(\eta_1,\tau^2)+\pi_2\op{N}(\eta_2,\tau^2)+\pi_3\op{N}(\eta_3,\tau^2)$, also with diffuse proper priors on $\eta_j$ and $\tau^2$ and a $\op{Dir}(1,1,1)$ prior on $\pi$
-\item[DP model]$\mu_g \ind \mathcal{P}$ with $\mathcal{P} \sim \op{DP}\left\{\alpha \op{N}(0,5^2)\right\}$ and an informative prior on $\alpha$
+\item Normal model: $\mu_g \ind \op{N}(\eta, \tau^2)$, with diffuse proper priors on $\eta$ and $\tau^2$
+\item Correct model: $\mu_g \sim \pi_1\op{N}(\eta_1,\tau^2)+\pi_2\op{N}(\eta_2,\tau^2)+\pi_3\op{N}(\eta_3,\tau^2)$, also with diffuse proper priors on $\eta_j$ and $\tau^2$ and a $\op{Dir}(1,1,1)$ prior on $\pi$
+\item DP model: $\mu_g \ind \mathcal{P}$ with $\mathcal{P} \sim \op{DP}\left(\alpha \op{N}(0,5^2)\right)$ and an informative prior on $\alpha$
 \end{enumerate}. 
 
 Critically, this last model allows us to be agnostic about the modality of $\mathcal{P}$; further details are given in the next section.
@@ -102,13 +102,13 @@ Critically, this last model allows us to be agnostic about the modality of $\mat
 \centering
 \includegraphics[width=.5\textwidth]{toy_ex/predictive}
 \begin{minipage}{.8\textwidth}
-\caption{\small Top: Sample averages for the simulated trimodal data. The next three rows correspond to pointwise posterior estimates and 90\% credible intervals for the predictive density for a new $\mu_g$. For the BNP model, a weighted kernel density estimate employing a bandwidth of 0.1  was used for each posterior draws of $\mathcal{P}$, as the posterior draws do not have a density with respect to Lebesgue measure.}
+\caption{\small Top: Sample averages for the simulated trimodal data. The next three rows correspond to pointwise posterior estimates and 90\% credible intervals for the predictive density for a new $\mu_g$. For the DP model, a weighted kernel density estimate employing a bandwidth of 0.1  was used for each posterior draws of $\mathcal{P}$, as the posterior draws do not have a density with respect to Lebesgue measure.}
 \label{predictive}
 \end{minipage}
 \end{figure}
 
 
-The bottom three panels of Figure \ref{predictive} show density estimates and 90\% pointwise credible intervals for the predictive distributions for a new $\mu_g$ based on the posteriors the three models. For the Normal model and the Correct model, these were computed by taking quantiles of the sampled density evaluated on a grid. For the DP model, the sample density was estimated using a weighted kernel with bandwidth of 0.1 because samples of $\mathcal{P}$ do not have a density with respect to Lebesgue measure. The true generating model for the $\mu_g$ is shown in red. The posterior for the density of $\mu_g$ under the normal model has less uncertainty but is concentrated around an incorrect answer because of its inflexibility. Both the Correct and the DP models contain much of the true density within the pointwise uncertainty intervals. The BNP model shows a great deal more posterior uncertainty because it does not assume a parametric model for $\mu_g$. Despite the increased uncertainty in the predictive distribution, the posterior estimation under the BNP model is nearly as good as it is under the true model; the left panel of Figure~\ref{precision} shows the lengths of the posterior 95\% credible intervals for the $\mu_g$ sorted by their length for the three models; the dotted lines represent correspond to a non-hierarchical analysis (independent, uniform priors on $\mu_g$) with $\sigma^2$ known ($+/- 4/\sqrt{3}$). For this data set, we see that both the nonparametric and true models have less posterior uncertainty than the normal model on average, while all three hierarchical models have substantially less uncertainty than a non-hierarchical model. The right panel shows histograms of the gene specific RMSE, $[\int (\mu_g - \mu_{g0})^2 p(\mu_g|y) d\mu_g]^{1/2}$, computed for each $g$ under the three models, where $\mu_{g0}$ is the true value. Again, we see that estimation is substantially improved when the hierarchical distribution is modelled appropriately.
+The bottom three panels of Figure \ref{predictive} show density estimates and 90\% pointwise credible intervals for the predictive distributions for a new $\mu_g$ based on the posteriors the three models. For the Normal model and the Correct model, these were computed by taking quantiles of the sampled density evaluated on a grid. For the DP model, the sample density was estimated using a weighted kernel with bandwidth of 0.1 because samples of $\mathcal{P}$ do not have a density with respect to Lebesgue measure. The true generating model for the $\mu_g$ is shown in red. The posterior for the density of $\mu_g$ under the normal model has less uncertainty but is concentrated around an incorrect answer because of its inflexibility. Both the Correct and the DP models contain much of the true density within the pointwise uncertainty intervals. The DP model shows a great deal more posterior uncertainty because it does not assume a parametric model for $\mu_g$. Despite the increased uncertainty in the predictive distribution, the posterior estimation under the DP model is nearly as good as it is under the true model; the left panel of Figure~\ref{precision} shows the lengths of the posterior 95\% credible intervals for the $\mu_g$ sorted by their length for the three models; the dotted lines represent correspond to a non-hierarchical analysis (independent, uniform priors on $\mu_g$) with $\sigma^2$ known ($+/- 4/\sqrt{3}$). For this data set, we see that both the nonparametric and true models have less posterior uncertainty than the normal model on average, while all three hierarchical models have substantially less uncertainty than a non-hierarchical model. The right panel shows histograms of the gene specific RMSE, $[\int (\mu_g - \mu_{g0})^2 p(\mu_g|y) d\mu_g]^{1/2}$, computed for each $g$ under the three models, where $\mu_{g0}$ is the true value. Again, we see that estimation is substantially improved when the hierarchical distribution is modelled appropriately.
 
 % \begin{figure}[h!]
 % \includegraphics[width=.5\textwidth]{toy_ex/post-pred}
@@ -118,7 +118,7 @@ The bottom three panels of Figure \ref{predictive} show density estimates and 90
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=.9\textwidth]{toy_ex/precision}
+\includegraphics[width=\textwidth]{toy_ex/precision}
 \begin{minipage}{.8\textwidth}
 \caption{\small Left: Histograms of gene specific RMSE based on posteriors for these models. Right: The widths of the 95\% posterior credible intervals for $\mu_g$ under the three hierarchical models, arranged by the width for the true model. Intervals which failed to cover the true value are colored red. The dashed lines correspond approximately to credible intervals with independent uniform priors on $\mu_g$.}
 \label{precision}
@@ -128,7 +128,157 @@ The bottom three panels of Figure \ref{predictive} show density estimates and 90
 
 \subsection{BNP model for RNA-seq data}
 \label{sec:model}
-A design matrix for the \citet{paschold} data described in Section \ref{sec:data} is
+Let $y_{gn}$ represent the normalized log-cpm for gene $g$, sample $n$ and let X be the model matrix. Let $x_{n}^\top$ be the row of a model matrix corresponding to sample $n$. Let $g=1,...,G$ and $n=1,...N$ index genes and samples, respectively. We model
+\begin{equation}
+y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right)
+\end{equation}
+where $w_{gn}$ is a given relative precision for $y_{gn}$. While not critical to our method, the inclusion of these precisions allows us to avoid dependence on the assumption of constant variance within genes. This is discussed further in Section \ref{norm-weight}. As discussed in the previous Section, we intend to model the gene-specific parameters nonparametrically, letting the vector of gene specific parameters follow a Dirichlet process. This is denoted by
+\begin{equation}
+\left(\beta_g^\top,\sigma^2_g\right) \ind \mathcal{P},\quad \mathcal{P} \sim \op{DP}(\alpha \mbox{Q}),
+\end{equation}
+where $\op{DP}(\alpha \mbox{Q})$ is a Dirichlet process with concentration parameter, $\alpha$, and base distribution $\mbox{Q}$.
+
+The DP satisfies two requirements proposed by \citet{ferguson} for priors over probability distributions, that it have large support on the space of probability distributions and that it be computationally tractable \citep{ferguson}. The tractibility of the DP is important, because it makes inference computationally feasible. The large support allows us to discard unwarranted parametric assumptions about $\mathcal{P}$.
+
+The stick-breaking characterization of the DP, due to \citet{sethuraman}, says that 
+\begin{equation}
+\label{dp-def}
+\mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)},\quad \pi_k = \nu_k \prod_{l<k}(1-\nu_l), \quad 
+\nu_k \ind \op{Beta}(1, \alpha),\; \alpha>0,
+\end{equation}
+where $\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right) \ind Q$, and where $\delta_{x}$ represents the Dirac delta function. It is clear from Sethuraman's representation of the DP that $\mathcal{P}$ is almost surely discrete. The name, ``stick-breaking", given to this characterization, is illuminated by noting the specification of the cluster weights, $\pi_k$, in terms of the independent $\nu_k$ can be rewritten as
+\begin{equation}
+\label{eq:pi}
+\pi_k = \nu_k\left(1-\sum_{l<k}\pi_l\right),
+\end{equation} so $\nu_k$ has the interpretation of the relative size of $\pi_k$ as compared to the remaining ``stick", $1-\sum_{l<k}$.
+
+A consequence of (\ref{dp-def}) is that $\op{E}(\pi_k)<\op{E}(\pi_l),\;k>l$ and that $E(\pi_k)=\left[1/(\alpha+1\right]\left[\alpha/(\alpha+1)\right]^{k-1} = \alpha \left[\alpha/(\alpha+1)\right]^{k}$, which tell us that $\pi_k$ decreases in expectation in $k$, is decreasing quickly for small values of $\alpha$ and slowly for large values. It is important to understand that this model gives positive prior probability that $(\beta_g^\top,\sigma_g^2)=(\beta_{g'}^\top,\sigma_{g'}^2)$ for any $g$ and $g'$. Another related fact involving $\alpha$, pointed out by \citet[p. 1161]{antoniak}, is that the expected number of unique values of $(\beta_g^\top,\sigma^2_g)$ is 
+\begin{equation}
+\label{exp-num-clust}
+\sum_{i=1}^G \frac{\alpha}{\alpha + i - 1}.
+\end{equation}  The bet made on sparsity by assuming this latent clustering allows for such flexibility in learning $\mathcal{P}$, without overfitting the model to the data.
+
+Equation (\ref{eq:pi}) suggests that for large $K$, $\pi_\ell$ are negligible for $\ell>K$. We use this fact to justify our use of a truncated approximation to (\ref{dp-def}),
+\begin{equation}
+\label{trunc-dp-def}
+\mathcal{P} =\sum_{k=1}^K \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)},\quad \pi_k = \nu_k \prod_{l<k}(1-\nu_l), \quad 
+\nu_k \ind \op{Beta}(1, \alpha),\; \alpha>0,\; k<K,\; \nu_K:=1.
+\end{equation}
+This is the truncation approximation to the DP presented by \citet{ishwaran2000}.
+% The mixture weights, $\pi_k$,  follow a stick-breaking process \cite{sethuraman}. Using the reparameterization,
+%
+% \begin{equation}
+% \nu_k = \frac{\pi_k}{1 - \sum_{l=1}^{k-1} \pi_l},
+% \end{equation}
+%
+% $\nu_k$ representing a proportion of the total probability remaining after $k-1$ breaks. For the stick-breaking construction of the DP, the $\nu_k$ are modeled by:
+% \begin{equation}
+% \nu_k \ind \op{Beta}(1, \alpha).
+% \end{equation}
+%
+% This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$.
+
+\subsection{Normalization and precision weights}
+\label{norm-weight}
+\paragraph{Between sample normalization}
+Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. \citet{robinson2010} proposed a method called TMM, which uses a trimmed mean of log-fold change between two samples to robustly estimate the systemic bias. For details, see \citet{robinson2010}.
+
+\paragraph{Precision weights adjust for non-constant variance}
+An argument in favor of the use of overdispersed Poisson models in general, and negative binomial models in particular, for RNA-seq data is that the quadratic mean-variance relationship implied by these models generally agrees with patterns observed in RNA-seq counts.  By an argument of \citet[p.4290]{mccarthy}, the variance of a count, $r_{gn}$, is $\op{Var}(r_{gn})=\mu_{gn} + \phi_g \mu_{gn}^2$ under the assumption that $r_{gn}$ is a mixture of Poisson with mean $\mu_{gn}$ and that $\phi_g>0$ is the coefficient of variation for the mixing distribution. In contrast, the log-normal model has a mean-variance relationship given by $\op{Var}(r_{gn})=\phi_g \mu_{gn}^2$ (using a non-standard mean parameterization with $\phi_g=\exp(\sigma^2)-1$ and ignoring problems related to discreteness and zero counts).
+
+% Theory suggests that, absent biological variation, an RNA-seq count, $r_{gn}$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(r_{gn})=\op{E}(r_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$).
+
+Because treatment effects are usually modeled on the log scale for gene expression, consider the delta method  approximation for a overdispersed Poisson count in terms of the log-count: $\op{Var}(\log r_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g\mu_{gn}^2)=1/\mu_{gn} + \phi_g$. For the normal model, the corresponding expression is $\op{Var}(\log r_{gn}) = \sigma^2_g\approx \log \phi_g$ for large $\mu_{gn}$.
+
+% Empirical evidence \citep{voom} suggests that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with.
+
+\cite{voom} proposed a procedure called \textit{voom}, as a way to make RNA-seq data compatible with normal linear models. The voom procedure makes a normal model for normalized log-counts a viable alternative to overdispersed Poisson models by assigning to each count a precision weight. The computation of the weights involves a nonparametric regression fit to the square root of gene-wise standard deviations, using the overall log-mean expression for each gene as a predictor. Count specific weights are selected as predicted values based on the nonparametric model fit.
+
+In addition to making viable methods based on normal distributions, \citet{voom} suggests additional reasons for preferring to use voom:
+\begin{itemize}
+\item RNA-seq data display a non-ignorable trend in the negative binomial overdispersion parameter with gene abundance, so a nonparametric correction is also part of negative binomial methods
+\item by adjusting for the global mean variance trend at the count level, voom should provide better precision for genes which large variation in expression versus models which only provide correction at the gene level (via $\phi_g$)
+\end{itemize}
+% This procedure implies that the variance of a count is given by, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. We use \texttt{voom} in our pipline by estimating $\op{Var}_{LOWESS}(\mu)$ and plugging in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
+
+
+\subsection{Priors}
+$Q$ serves as a prior guess at $\mathcal{P}$, with $\alpha$ being the prior ``sample size" attributed to that guess. For large values of $\alpha$, $\pi_k$ will be small and decrease slowly, so that the expression given for $\mathcal{P}$ in (\ref{dp-def}) will allocate its mass more or less in a way that approximates $Q$, albeit discretely. If $\alpha$ is small, then $\mathcal{P}$ will allocate most of its mass to a small number of the atoms. For conjugacy, we choose $Q$ to be a product measure of the form
+
+
+\begin{equation}
+\tilde{\beta}_k \ind \op{N}(m_\beta, C_\beta),\quad \tilde{\sigma}^2_k \ind \op{IG}(a_{\sigma^2}, b_{\sigma^2}),
+\end{equation}
+
+where $\op{IG}(a,b)$ is an inverse gamma distribution parameterized by shape and scale parameters, $a$ and $b$, and with density given by
+\begin{equation*}
+p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
+\end{equation*}
+The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we follow the approach used in \cite{deseq2014} for setting the empirical Bayes prior for $\beta_g$ to set $Q$. In their method, variances are selected to match the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. For details, see \citet[p.17]{deseq2014}.
+
+The prior distribution for $\alpha$ is set indirectly by considering the implied expected number of clusters, given in (\ref{exp-num-clust}). Although it is impossible to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, there is a upper bound on the number of clusters we can handle. Since the number of clusters is expected to scale with $G$, it is sensible that our prior also takes account of $G$, a concept also noted by \citet{escobar1994}. We have found that the prior, $\alpha \sim \op{Ga}(a_\alpha=3,b_\alpha=3/G^{0.5})$, scales with $G$ and concentrates on a reasonable range of values for the number of expected clusters, between $G^{.25}$ and $G^{.75}$. To give some idea, for data where $G=30000$, this prior implies a 99\% probability on the average number of clusters being between 13 and 2280.
+
+%For $\beta_gl$; $l=2,3,4,5$, these were obtained using the \texttt{estimateBetaPriorVar} from the \texttt{DESeq2} package using the ``quantile" method. For $\beta_g1$ and $\sigma^2_g$, a similar m
+
+\subsection{Gibbs Sampler}
+Our Gibbs sampler for performing MCMC sampling from the posterior distribution for the BNP model is adapted from the blocked Gibbs sampler of \citet{ishwaran2000}. The steps are given below; derivations of the full conditional distributions are provided in Appendix \ref{deriv-full-cond}.
+
+\paragraph{Sample $\zeta_g$, $\alpha$:}
+$\alpha$ and all $\zeta_g$ are conditionally independent.
+$\alpha$ is conditionally conjugate with full conditional
+\begin{equation*}
+\alpha \sim \op{Gamma}(K + a_\alpha - 1, -\log \pi_K + b_\alpha).
+\end{equation*}
+\begin{equation*}
+\zeta_g \ind \op{Categorical}\left(\hat{\pi}_1,\ldots,\hat{\pi}_K \right), \mbox{ with}
+\end{equation*}
+\begin{equation*}
+\hat{\pi}_k \propto \pi_k \op{N}(y_g;X\tilde{\beta}_k,\tilde{\sigma}_k^2 W_g^{-1}).
+\end{equation*}
+Here $W_g$ is a diagonal matrix consisting of the log-count specific precisions. The $\zeta_g$ parameters are categorical random variables with weights proportional to the likelihood of $y_g$ given $\tilde{\beta}_k$ and $\tilde{\sigma}_k$, weighted by $\pi_k$. This step is the most computationally intensive --- just computing the weights requires the calculation of $G\times K$ such likelihoods. However, using fine-grained GPU parallelism, doing so is computationally feasible. 
+
+
+\paragraph{Sample $\tilde{\beta}_k$:}
+\begin{equation*}
+\tilde{\beta}_k \ind \op{N}(\hat{m}_k,\, \hat{C}_k),
+\end{equation*}
+\begin{equation*}
+\mbox{ where }\hat{C}_k= \left( \tilde{\sigma}^{-2}_g\sum_{g:\zeta_g=k}
+  X^\top W_g X + C^{-1} \right)^{-1}, \mbox{ and }\hat{m}_k=\hat{C}_k \left(\sum_{g:\zeta_g=k} X^\top W_g y_g +
+      C^{-1}m \right).
+\end{equation*}
+The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq k$ for all $g$, then $\tilde{\beta}_k$ is drawn from the base measure.
+
+\paragraph{Sample $\tilde{\sigma}_k^2$}
+\begin{equation*}
+      \tilde{\sigma}_k^2 \ind \op{IG}(\hat{a}_k,\hat{b}_k),
+    \end{equation*}
+    \begin{equation*}
+      \mbox{ where }\hat{a}_k = a_{\sigma^2} + \frac{1}{2}NM_k,\mbox{ and }\hat{b}_k= b_{\sigma^2} + \frac{1}{2}\sum_{g:\zeta_g=k}y_g^\top W_g y_g -2 \beta_g^\top X^\top W_g y_g  +\beta_g^\top X^\top W_g X \beta_g
+    \end{equation*}
+
+    Here $M_k$ is the number of $g$ for which $\zeta_g = k$. Again, the $\tilde{\sigma}_k$ are conditionally independent.
+
+\paragraph{Sample $\nu_k$}
+\begin{equation*}
+\nu_k \ind \op{Be}(M_k + 1, \sum_{\ell>k}M_\ell + \alpha).
+\end{equation*}
+
+Given $\alpha$ and $\zeta$, the $\nu_g$ are conditionally independent.
+
+\subsection{Assessing convergence}
+The validity of our inference depends on adequate mixing of our MCMC chains. To assess this convergence where only a single chain was run, Geweke diagnostic were calculated for the gene-specific parameters, which, upon convergence are normally distributed with a standard deviation of 1. The number of effective samples was also calculated for these as well as for the concentration parameter $\alpha$.
+
+When multiple chains were run for the same target, we still calculated effective sample sizes for $\alpha$ by summing the estimated effective size for each chain, but we calculated Gelman-Rubin potential scale reduction factors (Rhat) instead of Geweke diagnostics for the gene-specific parameters. This is computationally convenient because it can be performed using sample moments and vectorized across genes. Upon convergence, Rhats converge to 1. 
+
+\section{Simulation studies}
+We conducted two simulation studies to gain test the performance of the BNP model relative to another log linear method using voom as well as some popular count-based methods. We consider two criteria: 1) the average precision, under squared error loss, of the estimated effects, and 2) the accuracy of gene classification for each method of interest.
+
+The geometry of the region of the parameter space where gene expression heterosis holds makes it difficult to construct hypothesis tests for heterosis, and such tests are not available in the methods we wish to compare against. Instead, we chose to use the classification of genes whose effects are larger than a threshold to be our criteria for assessing the utility of the different methods.
+
+\citet{treat} described a statistical test, coined TREAT, to evaluate whether the log-fold-change due to a model term is larger than a specified threshold in absolute value, i.e. it allows the ranking of genes based on the evidence of the hypothesis, $H_{g\ell}:|\beta_{g\ell}|>t$. The authors note that, ``The biological significance of a given fold-change is likely to depend on the gene and on the experimental context. On the other hand, it is reasonable to assume that there is a minimum fold-change threshold below which differential expression is unlikely to be of interest for any gene \citep[pp. 765-755]{treat}." Their methodology, based on a non-hierarchical log-linear model, implemented in the R-package, \texttt{limma}, estimates all of the $\beta_g$ independently without any pooling. Testing with TREAT consists of a moderated t-test that involves an shrunken estimates of $\sigma^2_g$ \citep{treat}. For more details, see \citet{treat}. All three competing methodologies considered in this section can be adapted to test log-fold-change greater than a threshold and have provided functionality in their software for doing so.
+
+A model matrix for the \citet{paschold} data described in Section \ref{sec:data}, which is also assumed for our simulations is
 {\footnotesize
 \begin{equation*}
 X =\quad \begin{blockarray}{rrrrrr}
@@ -155,156 +305,26 @@ X =\quad \begin{blockarray}{rrrrrr}
 \label{design}
 \end{equation*}
 }
-Let $y_{gn}$ represent the normalized log-cpm for gene $g$, sample $n$. Let $x_{n}^\top$ be the row of the design matrix $X$ corresponding to sample $n$. Let $g=1,...,G$ and $n=1,...N$ index genes and samples, respectively. Let
-\begin{equation}
-y_{gn} \sim \op{N} \left( x_{n}^\top \beta_g, \frac{\sigma^2_g}{w_{gn}} \right)
-\end{equation}
-where $w_{gn}$ is a given relative precision for $y_{gn}$. While not critical to our method, the inclusion of these precisions allows us to avoid dependence on the assumption of constant variance within genes. This is discussed further in Section \ref{norm-weight}. As discussed in the previous Section, we intend to model the gene-specific parameters nonparametrically, letting the vector of gene specific parameters follow a Dirichlet process. This is denoted by
-\begin{equation}
-\left(\beta_g^\top,\sigma^2_g\right) \ind \mathcal{P},\quad \mathcal{P} \sim \op{DP}(\alpha \mbox{Q}),
-\end{equation}
-where $\op{DP}(\alpha \mbox{Q})$ is a Dirichlet process with concentration parameter, $\alpha$, and base distribution $\mbox{Q}$.
 
-The DP satisfies two requirements proposed by \citet{ferguson} for priors over probability distributions, that it have large support on the space of probability distributions and that it be computationally tractable \citep{ferguson}. The tractibility of the DP is important, because it makes inference computationally feasible. The large support allows us to discard unwarranted parametric assumptions about $\mathcal{P}$.
-
-The stick-breaking characterization of the DP, due to \citet{sethuraman}, says that 
-\begin{equation}
-\label{dp-def}
-\mathcal{P} =\sum_{k=1}^\infty \pi_k \delta_{\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right)},\quad \pi_k = \nu_k \prod_{l<k}(1-\nu_l), \quad 
-\nu_k \ind \op{Beta}(1, \alpha),\; \alpha>0,
-\end{equation}
-where $\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right) \ind Q$, and where $\delta_{x}$ represents the Dirac delta function. It is clear from Sethuraman's representation of the DP that $\mathcal{P}$ is almost surely discrete. The name, ``stick-breaking", given to this characterization, is illuminated by noting the specification of the cluster weights, $\pi_k$, in terms of the independent $\nu_k$ can be rewritten as
-\begin{equation}
-\label{eq:pi}
-\pi_k = \nu_k\left(1-\sum_{l<k}\pi_l\right),
-\end{equation} so $\nu_k$ has the interpretation of the relative size of $\pi_k$ as compared to the remaining ``stick", $1-\sum_{l<k}$.
-
-A consequence of (\ref{dp-def}) is that $\op{E}(\pi_k)<\op{E}(\pi_l),\;k>l$ and that $E(\pi_k)=\left[1/(\alpha+1\right]\left[\alpha/(\alpha+1)\right]^{k-1} = \alpha \left[\alpha/(\alpha+1)]^{k}$, which tell us that $\pi_k$ decreases in expectation in $k$, is decreasing quickly for small values of $\alpha$ and slowly for large values. It is important to understand that this model gives positive prior probability that $(\beta_g^\top,\sigma_g^2)=(\beta_{g'}^\top,\sigma_{g'}^2)$ for any $g$ and $g'$. Another related fact involving $\alpha$, pointed out by \citet[p. 1161]{antoniak}, is that the expected number of unique values of $(\beta_g^\top,\sigma^2_g)$ is 
-\begin{equation}
-\label{exp-num-clust}
-\sum_{i=1}^G \frac{\alpha}{\alpha + i - 1}.
-\end{equation}  The bet made on sparsity by assuming this latent clustering allows for such flexibility in learning $\mathcal{P}$, without overfitting the model to the data.
-
-
-% The mixture weights, $\pi_k$,  follow a stick-breaking process \cite{sethuraman}. Using the reparameterization,
-%
-% \begin{equation}
-% \nu_k = \frac{\pi_k}{1 - \sum_{l=1}^{k-1} \pi_l},
-% \end{equation}
-%
-% $\nu_k$ representing a proportion of the total probability remaining after $k-1$ breaks. For the stick-breaking construction of the DP, the $\nu_k$ are modeled by:
-% \begin{equation}
-% \nu_k \ind \op{Beta}(1, \alpha).
-% \end{equation}
-%
-% This assumption induces a stochastically decreasing ordering of the weights. Additionally, note that $\sum_{k=1}^K \pi_k \stackrel{p}{\rightarrow} 1$ as $K\rightarrow \infty$.
-
-\subsection{Normalization and precision weights}
-\label{norm-weight}
-\paragraph{Between sample normalization}
-Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. \citet{robinson2010} proposed a method called TMM, which uses a trimmed mean of log-fold change between two samples to robustly estimate the systemic bias. For details, see \citet{robinson2010}.
-
-\paragraph{Precision weights adjust for non-constant variance}
-An argument in favor of the use of overdispersed Poisson models in general, and negative binomial models in particular, for RNA-seq data is that the quadratic mean-variance relationship implied by these models generally agrees with patterns observed in RNA-seq counts.  By an argument of \citet[p.4290]{mccarthy}, the variance of a count, $r_{gn}$, is $\mu_{gn} + \phi_g \mu_{gn}^2$ under the assumption that $r_{gn}$ is a mixture of Poisson with mean $\mu_{gn}$ and that $\phi_g>0$ is the coefficient of variation for the mixing distribution. In contrast, a log-normal model corresponds to a different  mean-variance relationship (using a non-standard mean parameterization with $\phi_g=\exp(\sigma^2)-1), $\phi_g \mu_{gn}^2$.
-
-% Theory suggests that, absent biological variation, an RNA-seq count, $r_{gn}$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(r_{gn})=\op{E}(r_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$).
-
-Because treatment effects are usually modeled on the log scale for gene expression, consider the delta method  approximation for a overdispersed Poisson count in terms of the log-count: $\op{Var}(\log r_{gn}) \approx (1/\mu_{gn})^2(\mu_{gn} + \phi_g\mu_{gn}^2)=1/\mu_{gn} + \phi_g$. For the normal model, the corresponding expression is $\sigma^2_g\approx \log \phi$ for large $\mu_{gn}$.
-
-% Empirical evidence \citep{voom} suggests that the overdispersion parameter, $\phi_g$, tends to be larger for genes with lower expression than those with higher expression. Unlike the normal distribution, the negative binomial distribution with unknown dispersion parameter is not an exponential family and is less computationally convenient to work with.
-
-\cite{voom} proposed a procedure called \textit{voom}, as a way to make RNA-seq data compatible with normal linear models. voom makes a normal model for normalized log-counts a viable alternative to overdispersed Poisson models by assigning to each count a precision weight. The computation of the weights involves a nonparametric regression fit to the square root of gene-wise standard deviations, using the overall log-mean expression for each gene as a predictor. Count specific weights are selected as predicted values based on the nonparametric model fit.
-
-In addition to making viable methods based on normal distributions, \citet[pp.{voom} suggests additional reasons for preferring to use voom:
-\begin{itemize}
-\item real data display a non-ignorable decreasing trend in the negative binomial overdispersion parameter with gene abundance
-\item by adjusting for the global mean variance trend at the count level, voom should provide better precision for genes which large variation in expression versus models which only make an allowance at the gene level (via $\phi_g$)
-\end{enumerate}
-% This procedure implies that the variance of a count is given by, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. We use \texttt{voom} in our pipline by estimating $\op{Var}_{LOWESS}(\mu)$ and plugging in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
-
-
-\subsection{Priors}
-$Q$ serves as a prior guess at $\mathcal{P}$, with $\alpha$ being the prior ``sample size" attributed to that guess. For large values of $\alpha$, $\pi_k$ will be small and decrease slowly, so that the expression given for $\mathcal{P}$ in (\ref{dp-def}) will allocate its mass more or less in a way that approximates $Q$, albeit discretely. If $\alpha$ is small, then $\mathcal{P}$ will allocate most of its mass to a small number of the atoms. For conjugacy, we choose $Q$ to be a product measure of the form
-
-
-\begin{equation}
-\tilde{\beta}_k \ind \op{N}(m_\beta, C_\beta),\quad \tilde{\sigma}^2_k \ind \op{IG}(a_{\sigma^2}, b_{\sigma^2}),
-\end{equation}
-
-where $\op{IG}(a,b)$ is an inverse gamma distribution parameterized by shape and scale parameters, $a$ and $b$, and with density given by
-\begin{equation*}
-p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
-\end{equation*}
-The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we follow the approach used in \cite{deseq2014} for setting the empirical Bayes prior for $\beta_g$ to set $Q$. In their method, variances are selected to match the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. For details, see \citet[p.17]{deseq2014}.
-
-The prior distribution for $\alpha$ is set indirectly by considering the implied expected number of clusters, given in (\ref{exp-num-clust}). Although it is impossible to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, there is a upper bound on the number of clusters we can handle. Since the number of clusters is expected to scale with $G$, it is sensible that our prior also takes account of $G$, a concept also noted by \citet{escobar1994}. We have found that the prior, $\alpha \sim \op{Ga}(3,3/G^{0.5})$, scales with $G$ and concentrates on a reasonable range of values for the number of expected clusters, between $G^{.25}$ and $G^{.75}$. To give some idea, for data where $G=30000$, this prior implies a high probability on the average number of clusters being between 13 and 2280.
-
-%For $\beta_gl$; $l=2,3,4,5$, these were obtained using the \texttt{estimateBetaPriorVar} from the \texttt{DESeq2} package using the ``quantile" method. For $\beta_g1$ and $\sigma^2_g$, a similar m
-
-\subsection{Gibbs Sampler}
-Our Gibbs sampler for performing MCMC sampling from the posterior distribution for the BNP model is adapted from the blocked Gibbs sampler of \citet{ishwaran2000}. The steps are as follows:
-
-\paragraph{Sample $\zeta_g$, $\alpha$:}
-
-\begin{equation*}
-\zeta_g \ind \op{Categorical}\left(\hat{\pi}_1,\ldots,\hat{\pi}_K \right), \mbox{ with}
-\end{equation*}
-\begin{equation*}
-\hat{\pi}_k \propto \pi_k \op{N}(y_g;X\tilde{\beta}_k,\tilde{\sigma}_k^2 W_g).
-\end{equation*}
-Here $W_g$ is a diagonal matrix consisting of the log-count specific precisions. Conditional on everything else, the $\zeta_g$ parameters are independent $K$-categorical random variables with weights proportional to the likelihood of $y_g$ given $\tilde{\beta}_k$ and $\tilde{\sigma}_k$, weighted by $\pi_k$. This step is the most computationally intensive; just computing the weights requires the calculation of $G\times K$ such likelihoods. However, using fine-grained GPU parallelism, doing so is practically feasible. $\alpha$ is conditionally independent of the $\zeta_g$s and has the conjugate full conditional
-\begin{equation*}
-\alpha \sim \op{Gamma}(K + a_\alpha - 1, -\log \pi_K + b_\alpha).
-\end{equation*}
-
-
-\paragraph{Sample $\tilde{\beta}_k$:}
-\begin{equation*}
-\tilde{\beta}_k \sim \op{N}(\hat{m}_k,\, \hat{C}_k),
-\end{equation*}
-\begin{equation*}
-\mbox{ where }\hat{C}_k= \left( \sigma^{-2}_g\sum_{g:\zeta_g=k}
-  X^\top W_g X + C^{-1} \right)^{-1}, \mbox{ and }\hat{m}_k=\hat{C}_k \left(\sum_{g:\zeta_g=k} X^\top W_g y_g +
-      C^{-1}m \right).
-\end{equation*}
-The $\tilde{\beta}_k$ are conditionally independent. Note that if $\zeta_g \neq k$ for all $g$, then $\tilde{\beta}_k$ is simply drawn from it prior.
-
-\paragraph{Sample $\tilde{\sigma}_k^2$s}
-\begin{equation*}
-      \tilde{\sigma}_k^2 = \op{IG}(\hat{a}_k,\hat{b}_k),
-    \end{equation*}
-    \begin{equation*}
-      \mbox{ where }\hat{a}_k = a_{\sigma^2} + \frac{1}{2}NM_k,\mbox{ and }\hat{b}_k= b_{\sigma^2} + \frac{1}{2}\sum_{g:\zeta_g=k}y_g^\top W_g y_g -2 \beta_g^\top X^\top W_g y_g  +\beta_g^\top X^\top W_g X \beta_g
-    \end{equation*}
-
-    Here $M_k$ is the number of $g$ for which $\zeta_g = k$. Again, the $\tilde{\sigma}_k$ are conditionally independent.
-
-\paragraph{Sample $\nu$}
-\begin{equation*}
-\nu_k ~ \op{Be}(M_k + 1, \sum_{l>k}M_l + \alpha).
-\end{equation*}
-
-Given $\alpha$ and $\zeta$, the $\nu_g$ are conditionally independent. Derivations of the full conditionals are given in the Appendix.
-
-\section{Simulation study 1}
+\subsection{Comparison to non-hierarchical voom-based log-linear method}
 \label{sec:ss1}
 Since the proposed BNP method uses voom weights, we wanted to compare BNP results to those obtained from a non-hierarchical linear model employing the same weights. This second method we will call ``voom-limma" because it was carried out using the package \texttt{limma} in \texttt{R} \citep{smyth2005limma}. The voom-limma method fits a linear model to the data under the same transformation conditional on the same voom quality weights, but proceeds by fitting each gene independently. Thus, a comparison of the estimates obtained under BNP model to the voom-limma estimates will show the result of borrowing information across genes via the Dirichlet process prior on $\mathcal{P}$.
 
-\begin{table}
-\caption{Data simulation procedure for Simulation study 1}
+For this set of simulations, we determined the true values of the gene-specific parameters by taking a posterior draw of $\mathcal{P}$ from fitting the \citet{paschold} data and sampling 1000 gene-specific parameters from that $\mathcal{P}$. Normal data were then generated for each gene, conditional on the parameters and $X$. These steps are outlined in list form below. For each simulated data set, a single MCMC chain was run for 200,000 iterations after 10,000 burn-in iterations. These were thinned to yield 4,000 samples for each gene-specific parameter and $\alpha$. Geweke diagnostics for the gene-specific parameters were nearly normally distributed and the minimum number of effective samples across all gene-specific parameters was . The minimum number of effective samples for $\alpha$ was .
+
+% \begin{table}
+% \caption{Data simulation procedure for Simulation study 1}
 \begin{enumerate}
 \item Select random draw of $\mathcal{P}$, $\mathcal{P}^{(s)}$, obtained from the posterior distribution given the entire Paschold data set
 \item Sample $(\beta_g,\sigma^2_g)$ independently from $\mathcal{P}^{(s)}$, $g=1,\ldots,10000$
 \item Sample $y_{g} \sim N(X\beta_g,\sigma^2_g I)$
 \end{enumerate}
-\end{table}
+% \end{table}
 % Produce 6-10 such data sets\\
 
-\paragraph{TREAT}
-A common goal of gene expression profiling is to produce a ranked list of 'called' genes for which a particular hypothesis is most likely to be true. The authors of \texttt{limma} provide multiple methods for calling genes. One method, called a TREAT, tests whether the log-fold-change due to a model term is larger than a specified threshold in absolute value, i.e. it allows users to ranking genes based on the evidence of the hypothesis, $H_{gl}:|\beta_{gl}|>t$. The authors note that, ``The biological significance of a given fold-change is likely to depend on the gene and on the experimental context. On the other hand, it is reasonable to assume that there is a minimum fold-change threshold below which differential expression is unlikely to be of interest for any gene \citep[pp. 765-755]{treat}." Note that although \texttt{limma} estimates all of the $\beta_g$ independently without any pooling, TREAT is a moderated t-test that involves an shrunken estimates of $\sigma^2_g$ \citep{treat}. For more details, see \citet{treat}.
+We can compare the ranking given by these tests to ones based on posterior probabilites that $H_{g\ell}$ is true. We use receiver operating characteristic (ROC) curves to do this. ROC curves provide a graphical summary of the performance of a classifier by showing, as a function of the top $H$ genes as ranked by the classifier, the proportion of cases correctly identified (true positive rate, TPR) along with the proportion of non-cases that are improperly identified (false positive rate, FPR). The top panel of Figure \ref{roc-ss1} shows a typical ROC curve among the ten we observed. The bottom panel shows the area under the ROC curve (AUC) up to a FPR of 0.1. For both plots we show results for each component of $\beta$ (excluding the intercept) and a range of thresholds. In our simulations the BNP method tended to outperform \texttt{limma} on average. The exception seems to be for the parental half-difference. For that particular set of tests, both \texttt{limma} and BNP appear to have similar accuracy.
 
-We can compare the ranking given by \texttt{limma} to ones based on posterior probabilites that $H_{gl}$ is true. We use receiver operating characteristic (ROC) curves to do this. ROC curves provide a graphical summary of the performance of a classifier by showing, as a function of the top $H$ genes as ranked by the classifier, the the proportion of cases correctly identified (true positive rate, TPR) along with the proportion of non-cases that are improperly identified (false positive rate, FPR). The top panel of Figure \ref{roc-ss1} shows a typical receiver operator characteristic curve among the ten we observed. The bottom panel shows the area under the ROC curve (AUC) up to a FPR of 0.1. For both plots we show results for each component of $\beta$ (excluding the intercept) and a range of thresholds. In our simulations the BNP method tended to outperform \texttt{limma} on average. Note that while \texttt{limma} can perform tests with a threshold of zero, there is no comparable result for the BNP model, since this hypothesis has probability zero. The exception seems to be for the parental half-difference. For that particular set of tests, both \texttt{limma} and BNP appear to have similar accuracy.
-%The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin.
+% Note that while \texttt{limma} can perform tests with a threshold of zero, there is no comparable result for the BNP model, since this hypothesis has probability zero. %The comparative advantage seems to depend on the threshold: When $t=0$, there is little difference in the ROCs for testing $H_{g3}$, but as the threshold was increased to a log-fold change of 0.2, BNP outperformed \texttt{limma} by a wide margin.
 % This suggests that our method, by ``learning" the underlying distribution of $\beta$, increases the ability to detect effects of practical significance.
 % 
 \begin{figure}[ht!]
@@ -327,9 +347,9 @@ We also compared the accuracy of point estimate under the two models. Here we ex
 \end{minipage}
 \end{figure}
 
-\section{Simulation study 2}
+\subsection{Comparisons to count-based methods}
 \label{sec:ss2}
-Much of the recent methods proposed for the analysis of RNA-seq data are based on an assumption that repeated sequencing of the same sample would produce Poisson distributed counts. For example, \cite{mccarthy} motivates the negative binomial model by showing that it has the right mean-variance relationship given the the above assumption and an assumption that the coefficient of variation is for constant within a gene. A popular approach is to use a negative binomial generalized linear model with log link function.
+Much of the recent methods proposed for the analysis of RNA-seq data are based on an assumption that repeated sequencing of the same sample would produce Poisson distributed counts. For example, \cite{mccarthy} motivates the negative binomial model by showing that it has the right mean-variance relationship given the above assumption and an assumption that the coefficient of variation is for constant within a gene. A popular approach is to use a negative binomial generalized linear model with log link function.
 
 To compare estimation and accuracy of gene selection with existing methods designed for RNA-seq count data, we simulated count data by fitting the Paschold data with \texttt{voom/limma} and sampling a random subset of 10,000 genes without replacement. We then simulated normal data, conditioning on the estimates of $\beta_g$, $\sigma^2_g$, as well as the estimated precision weights. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes. Finally, these log-counts ($y_{gn}$) were exponentiated and rounded to obtain the simulated counts, $C_{gn}$. For each simulated data set, we analyzed the data using our BNP method and also with two popular count-based methods, \texttt{edgeR} and \texttt{DESeq2}, the latter both with and without independent normal priors on the $\beta$s \citep{edger2010,deseq2014}. For purposes of comparison, we considered accuracy of point estimation via mean squared prediction error and accuracy in identifying interesting genes using ROC curve.
 \begin{table}
