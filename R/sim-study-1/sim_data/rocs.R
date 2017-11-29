@@ -15,7 +15,7 @@ roc.df <- function(grp){
     
     df <- ldply(2:5, function(p){
       ldply(.2*0:5, function(th){
-        truth <- sim$truth$beta[,p]>th
+        truth <- abs(sim$truth$beta[,p])>th
         
         #ROC for limma fit
         limma_fit <- lmFit(sim$y, design = X)

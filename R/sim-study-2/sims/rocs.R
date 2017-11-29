@@ -40,14 +40,14 @@ roc.df <- function(grp){
         contr <- rep(0,5)
         contr[p] <- 1
         #ROC for DESeq2 (shrunk)
-        deseq.tests <- results(fit.deseq, contr, altHypothesis = "greater", lfcThreshold = th)
+        deseq.tests <- results(fit.deseq, contr, altHypothesis = "greaterAbs", lfcThreshold = th)
         id.deseq <- order(deseq.tests$pvalue)
         roc.deseq <- data.frame(type="DESeq2 (shrunk)",
                                     TPR = cumsum(truth[id.deseq])/sum(truth),
                                     FPR = cumsum(1-truth[id.deseq])/sum(1-truth))
             
         #ROC for DESeq2 (unshrunk)
-        deseq.tests2 <- results(fit.deseq2, contr, altHypothesis = "greater", lfcThreshold = th)
+        deseq.tests2 <- results(fit.deseq2, contr, altHypothesis = "greaterAbs", lfcThreshold = th)
         id.deseq2 <- order(deseq.tests2$pvalue)
         roc.deseq2 <- data.frame(type="DESeq2 (unshrunk)",
                                 TPR = cumsum(truth[id.deseq2])/sum(truth),
@@ -58,7 +58,7 @@ roc.df <- function(grp){
         voom.fit <- treat(fit = voom.fit, lfc = th)
         voom.top <- topTreat(fit = voom.fit, coef = p, number=10000)
         voom.top$g <- row.names(voom.top)
-        voom.top <- filter(voom.top, logFC>0)
+        # voom.top <- filter(voom.top, logFC>0)
         id.voom <- as.numeric(voom.top$g)
         roc.voom <- data.frame(type="voom-limma",
                                 TPR = cumsum(truth[id.voom])/sum(truth),
@@ -68,14 +68,14 @@ roc.df <- function(grp){
         edgeR.tests <- glmTreat(glmfit = fit.edgeR, coef = p, lfc = th)
         edgeR.topG <- topTags(edgeR.tests, n = 10000)[[1]]
         edgeR.topG$g <- row.names(edgeR.topG)
-        edgeR.topG <- filter(edgeR.topG, logFC>0)
+        # edgeR.topG <- filter(edgeR.topG, logFC>0)
         id.edgeR <- as.numeric(edgeR.topG$g)
         roc.edgeR <- data.frame(type="edgeR",
                                 TPR = cumsum(truth[id.edgeR])/sum(truth),
                                 FPR = cumsum(1-truth[id.edgeR])/sum(1-truth))
           
         #ROC for BNP fit
-        p.bnp <- apply(mcmc$samples$beta[p,,],2,function(g){mean(g>th)})
+        p.bnp <- apply(mcmc$samples$beta[p,,],2,function(g){mean(abs(g)>th)})
         id.bnp <- order(p.bnp, decreasing=TRUE)
         roc.bnp <- data.frame(type="BNP",
                               TPR=cumsum((truth)[id.bnp])/sum(truth),
@@ -99,7 +99,7 @@ out2 <- readRDS("roc-df2.rds")
 out3 <- readRDS("roc-df3.rds")
 
 library(ggplot2)
-consolidated <- rbind(out1,out2,out3) %>%
+consolidated <- rbind(out1)%>%#,out2,out3) %>%
   dplyr::group_by(sim, threshold, p, type, FPR) %>%
   dplyr::summarize(TPR = max(TPR)) %>%
   dplyr::mutate(id = paste(type,"_",sim,sep="")) #%>%
