@@ -35,7 +35,7 @@ roc.df <- function(grp){
     
     df <- ldply(2:5, function(p){
       ldply(c(.25,.5,.75), function(th){
-        truth <- sim$truth$beta[,p]>th
+        truth <- abs(sim$truth$beta[,p])>th
         
         contr <- rep(0,5)
         contr[p] <- 1
