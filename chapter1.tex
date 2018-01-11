@@ -1,7 +1,9 @@
 \section{Introduction}
 Heterosis, or hybrid vigor, refers to biological differences seen in offspring of two inbred parents, which give the hybrid qualities superior to either parent. While the phenomenon is well-known and widely exploited, its causes at the molecular level are not well understood \citep{paschold}. New technologies that can simultaneously measure the expression of tens of thousands of genes provide an opportunity to shed light on these mechanisms.
 
-Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies \citep{wang2009rna}. Statistical methods to analyze RNA-seq data have proliferated \citep{voom,deseq2014,mccarthy,liu,landau}. Because cost limits the number of samples that can be sequenced, the identification of interesting genes in gene expression profiling studies falls into the ``$n \ll p$" paradigm. In this paradigm, noise in the data tends to dominate the signal. Various statistical methods have been developed to mitigate this problem. One general approach is to hierarchical modeling. Hierarchical, or multi-level, models provide a mechanism to borrow strength across groups present in the data by learning the underlying distribution of the first-level model parameters. The case for using hierarchical models for RNA-seq data is compelling because there are a large number of genes, potentially providing substantial information about the distribution of gene-specific parameters, as well as a strong incentive to borrow information since there are often few samples with which to estimate any given gene-specific parameter. \citet{niemi} observed that the choice of parametric family for the hierarchical model impacts both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results. To avoid misspecification of the distribution of gene-specific parameters, one might choose to model them nonparametrically; for example, \citet{liu} proposed a semiparametric model for differential expression. In their model, the parameter representing the mean log-fold-change between the two treatments was modeled with a Dirichlet process (DP).
+Recently, RNA-seq technology has supplanted microarrays as the primary platform for these studies \citep{wang2009rna}. Statistical methods to analyze RNA-seq data have proliferated \citep{voom,deseq2014,mccarthy,liu,landau}. Because cost limits the number of samples that can be sequenced, the identification of interesting genes in gene expression profiling studies falls into the ``$n \ll p$" paradigm. In this paradigm, noise in the data tends to dominate the signal. Various statistical methods have been developed to mitigate this problem. One general approach is to hierarchical modeling.
+
+Hierarchical, or multi-level, models provide a mechanism to borrow strength across groups present in the data by learning the underlying distribution of the first-level model parameters. The case for using hierarchical models for RNA-seq data is compelling because there are a large number of genes, potentially providing substantial information about the distribution of gene-specific parameters, as well as a strong incentive to borrow information since there are often few samples with which to estimate any given gene-specific parameter. \citet{niemi} observed that the choice of parametric family for the hierarchical model impacts both estimation and the ranking of genes. It seems that appropriate modeling of the underlying distribution of the gene-specific parameters will lead to better results. To avoid misspecification of the distribution of gene-specific parameters, one might choose to model them nonparametrically; for example, \citet{liu} proposed a semiparametric model for differential expression. In their model, the parameter representing the mean log-fold-change between the two treatments was modeled with a Dirichlet process (DP).
 
 RNA-seq allows for direct mapping of reads to genetic features, so measurements are counts of total reads. While most RNA-seq methods we have seen use the negative binomial (NB) distribution \citet{mccarthy} provided a theoretical motivation for directly modeling the counts via a Poisson mixture, \citet{voom} demonstrated a method for estimating precision weights, making a normal data model a viable alternative to count-based methods. We choose to take advantage of the normal model, which allows us to exploit conditional conjugacy work with lower-dimensional sufficient statistics. This eases the computation burden, which can be a considerable benefit when conducting fully Bayesian inference.
 %
@@ -43,7 +45,7 @@ A simple analysis of RNA-seq data may be achieved by analyzing each gene indepen
 \begin{table}[ht]
 \centering
 \begin{minipage}{.8\textwidth}
-\caption{\small Selected rows from RNA-seq data set showing total aligned read counts for selected genes. Columns are grouped by genotype. Genes were selected as exemplars for different types of heterosis.}
+\caption{\small Selected rows from RNA-seq data set showing total aligned read counts for selected genes. Columns are grouped by genotype. Exemplar genes for different types of heterosis are shown.}
 \label{counts}
 \end{minipage}
 \\[.25cm]
@@ -80,7 +82,7 @@ The data come from \cite{paschold}. We work with the count of total aligned read
 The counts range in value from 0 to 38,006 with a mean value of 255.5 and a median value of 37. Figure \ref{fig:count-dist} shows the distribution of the total read counts plus 1 by sample. While the distributions look fairly consistent across samples, there are some differences in the lower quartiles. The replicate numbers on the x-axis can be used to identify the flow cell; replicates 1 and 2 were sequenced in flow cell 1, while replicates 3 and 4 were sequenced in flow cell 2. The differences between the flow cells shown in the lower quartile of the boxplots for the hybrids suggest that flow cell 1 was more thoroughly sequenced than flowcell 2.
 
 
-To identify genes which are likely to play a role in heterosis, we look for genes where the ordering of the average expression levels for the 4 genotypes exhibits one of several patterns. We say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. To be precise, we define multiple kinds of heterosis in terms of the mean expression levels of the genotypes. High-parent heterosis (HPH) occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis (LPH) occurs when the expected value of a hybrid is lower than that of both parents. The first two genes (rows) in Table \ref{counts} are exemplars of HPH and LPH, respectively. The third gene appears that B73$\times$Mo17 displays LPH while Mo17$\times$B73 displays HPH, and in the last gene the hybrid expression appears to lie between that of the parents. Here too, we see the apparent flow cell effects, since within a genotype there appear to be consistent differences between the first and second pairs of replicates.
+To identify genes which are likely to play a role in heterosis, we look for genes where the ordering of the average expression levels for the 4 genotypes exhibits one of several patterns. We say a gene expresses heterosis, when the expected value of a hybrid genotype differs from the average of the expected values of the two parents. To be precise, we define multiple kinds of heterosis in terms of the mean expression levels of the genotypes. High-parent heterosis (HPH) occurs when the expected value of a hybrid is higher than that of both parents. Similarly, low-parent heterosis (LPH) occurs when the expected value of a hybrid is lower than that of both parents. The first two genes (rows) in Table \ref{counts} are exemplar genes of HPH and LPH, respectively. The third gene appears that B73$\times$Mo17 displays LPH while Mo17$\times$B73 displays HPH, and in the last gene the hybrid expression appears to lie between that of the parents. Here too, we see the apparent flow cell effects, since within a genotype there appear to be consistent differences between the first and second pairs of replicates.
 
 \section{Bayesian nonparametric model}
 The advantage of hierarchical modeling generally is that that by assumming a distribution on some model parameters, we can improve inference by borrowing information, i.e. allowing data which doesn't have a direct dependence on a parameter to inform indirectly about the parameter through the parameter's distribution. Misspecification of the form of that hierarchical distribution can lead to incorrect borrowing of information. In practice, this issue is often overlooked. One reason for this is that in many cases it is difficult to check whether the hierarchical distribution is misspecified. Another reason is that there can be utility to using a hierarchical model, even when the hierarchical distribution is misspecified.
@@ -152,7 +154,7 @@ where $\left(\tilde{\beta}_k^\top ,\tilde{\sigma}^2_k\right) \ind Q$, and where 
 \pi_k = \nu_k\left(1-\sum_{l<k}\pi_l\right),
 \end{equation} so $\nu_k$ has the interpretation of the relative size of $\pi_k$ as compared to the remaining ``stick", $1-\sum_{l<k}$.
 
-A consequence of (\ref{dp-def}) is that $\op{E}(\pi_k)<\op{E}(\pi_l),\;k>l$ and that $E(\pi_k)=\left[1/(\alpha+1\right]\left[\alpha/(\alpha+1)\right]^{k-1} = \alpha \left[\alpha/(\alpha+1)\right]^{k}$, which tell us that $\pi_k$ decreases in expectation in $k$, is decreasing quickly for small values of $\alpha$ and slowly for large values. It is important to understand that this model gives positive prior probability that $(\beta_g^\top,\sigma_g^2)=(\beta_{g'}^\top,\sigma_{g'}^2)$ for any $g$ and $g'$. Another related fact involving $\alpha$, pointed out by \citet[p. 1161]{antoniak}, is that the expected number of unique values of $(\beta_g^\top,\sigma^2_g)$ is 
+A consequence of (\ref{dp-def}) is that $\op{E}(\pi_k)<\op{E}(\pi_l),\;k>l$ and that $E(\pi_k)=\left[1/(\alpha+1\right]\left[\alpha/(\alpha+1)\right]^{k-1} = \alpha \left[\alpha/(\alpha+1)\right]^{k}$, which tell us that $\pi_k$ decreases in expectation in $k$, is decreasing quickly for small values of $\alpha$ and slowly for large values. It is important to understand that this model gives positive prior probability that $(\beta_g^\top,\sigma_g^2)=(\beta_{g'}^\top,\sigma_{g'}^2)$ for any $g$ and $g'$. Another related fact involving $\alpha$, pointed out by \citet{antoniak}, is that the expected number of unique values of $(\beta_g^\top,\sigma^2_g)$ is 
 \begin{equation}
 \label{exp-num-clust}
 \sum_{i=1}^G \frac{\alpha}{\alpha + i - 1}.
@@ -184,7 +186,7 @@ This is the truncation approximation to the DP presented by \citet{ishwaran2000}
 Artifacts of the sequencing procedure can lead to some samples having larger or smaller read counts on average relative to other sample. This introduces biases that require adjustment. These corrections are typically made at the time of analysis by introducing a sample specific offset. \citet{robinson2010} proposed a method called TMM, which uses a trimmed mean of log-fold change between two samples to robustly estimate the systemic bias. For details, see \citet{robinson2010}.
 
 \paragraph{Precision weights adjust for non-constant variance}
-An argument in favor of the use of overdispersed Poisson models in general, and negative binomial models in particular, for RNA-seq data is that the quadratic mean-variance relationship implied by these models generally agrees with patterns observed in RNA-seq counts.  By an argument of \citet[p.4290]{mccarthy}, the variance of a count, $r_{gn}$, is $\op{Var}(r_{gn})=\mu_{gn} + \phi_g \mu_{gn}^2$ under the assumption that $r_{gn}$ is a mixture of Poisson with mean $\mu_{gn}$ and that $\phi_g>0$ is the coefficient of variation for the mixing distribution. In contrast, the log-normal model has a mean-variance relationship given by $\op{Var}(r_{gn})=\phi_g \mu_{gn}^2$ (using a non-standard mean parameterization with $\phi_g=\exp(\sigma^2)-1$ and ignoring problems related to discreteness and zero counts).
+An argument in favor of the use of overdispersed Poisson models in general, and negative binomial models in particular, for RNA-seq data is that the quadratic mean-variance relationship implied by these models generally agrees with patterns observed in RNA-seq counts.  By an argument of \citet{mccarthy}, the variance of a count, $r_{gn}$, is $\op{Var}(r_{gn})=\mu_{gn} + \phi_g \mu_{gn}^2$ under the assumption that $r_{gn}$ is a mixture of Poisson with mean $\mu_{gn}$ and that $\phi_g>0$ is the coefficient of variation for the mixing distribution. In contrast, the log-normal model has a mean-variance relationship given by $\op{Var}(r_{gn})=\phi_g \mu_{gn}^2$ (using a non-standard mean parameterization with $\phi_g=\exp(\sigma^2)-1$ and ignoring problems related to discreteness and zero counts).
 
 % Theory suggests that, absent biological variation, an RNA-seq count, $r_{gn}$, would have a Poisson distribution, with variance equal to the mean ($\op{Var}(r_{gn})=\op{E}(r_{gn})=\mu_{gn}$, if the RNA from the same sample were sequenced repeatedly. Biological variation (either between subjects or through repeated sampling) leads to overdispersion of the counts. Often, the negative binomial distribution is used to allow for variance that is quadratic with the mean ($\op{Var}(C_{gn})=\mu_{gn}+\phi_g\mu_{gn}^2$).
 
@@ -199,6 +201,10 @@ In addition to making viable methods based on normal distributions, \citet{voom}
 \item RNA-seq data display a non-ignorable trend in the negative binomial overdispersion parameter with gene abundance, so a nonparametric correction is also part of negative binomial methods
 \item by adjusting for the global mean variance trend at the count level, voom should provide better precision for genes which large variation in expression versus models which only provide correction at the gene level (via $\phi_g$)
 \end{itemize}
+
+To be consistent with \textit{voom} we use a base 2 logarithm to compute log-cpm. Explicitly, log-cpm is computed by
+\[y_{gn} = \log_2\left( \frac{r_{gn}+0.5}{R_n + 1}\cdot 10^6 \right),\]
+where $R_n$ is the effective library size for sample $n$.
 % This procedure implies that the variance of a count is given by, $\op{Var}(\log C_{gn})=\sigma_{g}^2\op{Var}_{LOWESS}(\mu)$. We use \texttt{voom} in our pipline by estimating $\op{Var}_{LOWESS}(\mu)$ and plugging in preliminary estimates of $\mu_{gn}$ to get $w_{gn} = \widehat{\op{Var}}_{voom}(\hat{\mu}_{gn}).$
 
 
@@ -214,7 +220,7 @@ where $\op{IG}(a,b)$ is an inverse gamma distribution parameterized by shape and
 \begin{equation*}
 p(x|a,b) = \frac{b^a}{\Gamma(a)}x^{a+1}e^{-b/x}.
 \end{equation*}
-The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we follow the approach used in \cite{deseq2014} for setting the empirical Bayes prior for $\beta_g$ to set $Q$. In their method, variances are selected to match the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. For details, see \citet[p.17]{deseq2014}.
+The use of diffuse base measures is not recommended as it can result too few practically significant weights, $\pi_k$ \citep[p.554]{gelman-book}. For purposes of comparability, we follow the approach used in \cite{deseq2014} for setting the empirical Bayes prior for $\beta_g$ to set $Q$. In their method, variances are selected to match the quantiles of the empirical distribution of the independently obtained estimates of $\beta_g$, $\sigma_g^2$. For details, see \citet{deseq2014}.
 
 The prior distribution for $\alpha$ is set indirectly by considering the implied expected number of clusters, given in (\ref{exp-num-clust}). Although it is impossible to guess the number of clusters \textit{a priori}, we believe that most genes will have a pattern of expression that is similar to some other gene, so that after grouping the genes into clusters, the number of clusters should be much smaller than the number of genes. Also, due to computational constraints, there is a upper bound on the number of clusters we can handle. Since the number of clusters is expected to scale with $G$, it is sensible that our prior also takes account of $G$, a concept also noted by \citet{escobar1994}. We have found that the prior, $\alpha \sim \op{Ga}(a_\alpha=3,b_\alpha=3/G^{0.5})$, scales with $G$ and concentrates on a reasonable range of values for the number of expected clusters, between $G^{.25}$ and $G^{.75}$. To give some idea, for data where $G=30000$, this prior implies a 99\% probability on the average number of clusters being between 13 and 2280.
 
@@ -353,7 +359,7 @@ We also compared the precision of point estimates obtained under the two models.
 
 \subsection{Comparisons to count-based methods}
 \label{sec:ss2}
-Much of the recent methods proposed for the analysis of RNA-seq data are based on negative binomial generalized linear models. The goal of the following simulation study was to compare performance of the BNP method using the voom weights to popular negative binomial-based methods. To generate the count data, we first analyzed the \citet{paschold} data with the voom-limma pipeline. Each simulated data set was generated by first sampling a random subset of 10,000 genes without replacement. Next, we simulated normal data, conditioning on the estimates obtained by limma for $\beta_g$, $\sigma^2_g$, as well as the precision weights, computed by the voom, corresponding to the selected genes. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes from the original data. Finally, these log-counts ($\log r_{gn}$) were exponentiated and rounded to obtain the simulated counts, $r_{gn}$. For each simulated data set, we analyzed the data using our BNP method and also with two popular count-based methods, \texttt{edgeR} and \texttt{DESeq2}, the latter both with and without independent normal priors on the $\beta_g$ parameters. \citep{edger2010,deseq2014}. Just as in the previous study, we considered precision of point estimates and accuracy of gene classification. The steps described above are outlined below. For each simulated data set, a single MCMC chain was run for 50,000 iterations after 10,000 burn-in iterations. These were thinned to yield 2,000 samples for each gene-specific parameter and $\alpha$. Geweke diagnostics for the gene-specific parameters showed slight departures from normality with a handful of genes having z-scores greater than 5 in absolute value. For every simulation 99\% of genes for every component had an ESS greater than 400, but every simulation had at least one gene with an ESS less than 100 and one simulation had a parameter with an ESS less than 10.
+Much of the recent methods proposed for the analysis of RNA-seq data are based on negative binomial generalized linear models. The goal of the following simulation study was to compare performance of the BNP method using the voom weights to popular negative binomial-based methods. To generate the count data, we first analyzed the \citet{paschold} data with the voom-limma pipeline. Each simulated data set was generated by first sampling a random subset of 10,000 genes without replacement. Next, we simulated normal data, conditioning on the estimates obtained by limma for $\beta_g$, $\sigma^2_g$, as well as the precision weights, computed by the voom, corresponding to the selected genes. These simulated log-cpm values were then converted to log-counts, centering by $\log_2(\bar{R}_\cdot)-\log_2(10^6)$, where $\bar{R}_\cdot$ is the geometric mean of the estimated effective library sizes from the original data. Finally, these log-counts ($\log_2 r_{gn}$) were exponentiated and rounded to obtain the simulated counts, $r_{gn}$. For each simulated data set, we analyzed the data using our BNP method and also with two popular count-based methods, \texttt{edgeR} and \texttt{DESeq2}, the latter both with and without independent normal priors on the $\beta_g$ parameters. \citep{edger2010,deseq2014}. Just as in the previous study, we considered precision of point estimates and accuracy of gene classification. The steps described above are outlined below. For each simulated data set, a single MCMC chain was run for 50,000 iterations after 10,000 burn-in iterations. These were thinned to yield 2,000 samples for each gene-specific parameter and $\alpha$. Geweke diagnostics for the gene-specific parameters showed slight departures from normality with a handful of genes having z-scores greater than 5 in absolute value. For every simulation 99\% of genes for every component had an ESS greater than 400, but every simulation had at least one gene with an ESS less than 100 and one simulation had a parameter with an ESS less than 10.
 
 \begin{enumerate}
 \item Sample 10,000 indices, $g$, from $\{1,2,\ldots,36,000\}$ without replacement.
@@ -418,8 +424,8 @@ low-parent Mo17xB73  & $\min\{\mbox{B73,Mo17}\} > \mbox{Mo17xB73}$ & $-|\beta_{g
 \includegraphics[width=.8\textwidth]{calib-ss2}
 \begin{minipage}{.8\textwidth}
 \caption{\small Calibration curves for BNP posterior probabilities calculated using posteriors and truth from the count-based simulations. Curves show true relative frequencies for the hypothesis indicated with bins determined by the posterior probability for each gene. The midpoint of the interval was used for plotting.}
-\end{minipage}
 \label{calib-ss2}
+\end{minipage}
 \end{figure}
 
 \section{Analysis of Paschold data}
@@ -442,13 +448,13 @@ In \citet{paschold}, the results of a series of hypothesis tests were combined t
 Figure \ref{het-shrink} shows how the nonparametric model shrinks estimates. Genes categorized as showing evidence of extreme gene heterosis in the original paper are represented as black points. The left panel shows independently obtained estimates for the parental half-difference and the mean hybrid effect overlayed on a bivariate histogram of the independent estimates for all genes. The right
 panel shows the corresponding estimates for our analysis overlayed on a posterior pointwise estimate of $\mathcal{P}$. In this second plot we can see significant shrinkage toward the regions where $\mathcal{P}$ has higher posterior density. This helps to explain why a large number of discovered genes have low posterior probabilities for the heterosis hypotheses: when weighed against the overall patterns within the data, in many cases it is likely that the magnitude of the independent estimates is overstated and that detection was a result of random variation.
 
-A result of this shrinkage is increased posterior precision. Figure \ref{exemplars} shows 90\% posterior credible intervals for the exemplars from Table \ref{counts}. The credible intervals are fairly tight, and the posterior means fall outside the range of the data in some cases. This is a result of shrinkage due to the borrowing of information.
+A result of this shrinkage is increased posterior precision. Figure \ref{exemplars} shows 90\% posterior credible intervals for the exemplar genes from Table \ref{counts}. The credible intervals are fairly tight, and the posterior means fall outside the range of the data in some cases. This is a result of shrinkage due to the borrowing of information.
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[width=.7\textwidth]{exemplars}
+\includegraphics[width=.7\textwidth]{exemplars_v2}
 \begin{minipage}{.8\textwidth}
-\caption{\small Plots of the exemplar genes from Table \ref{counts}, illustrating presence and absence of patterns of heterosis. The points are jittered horizontally and displayed on the scale of log counts per million. The uncertainty intervals shown are 90\% credible intervals from the fitted BNP model.}
+\caption{\small Plots of the exemplar genes from Table \ref{counts}, illustrating presence and absence of patterns of heterosis. The points are jittered horizontally. The uncertainty intervals shown are 90\% credible intervals for the mean log-cpm, scaled to the counts per million scale.}
 \label{exemplars}
 \end{minipage}
 \end{figure}
@@ -462,7 +468,7 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 \begin{table}[ht]
 \footnotesize
 \centering
-\caption{Two-way tables comparing the posterior probabilities of low-parent gene heterosis for all genes in the Paschold et al. (2012) data set found by BNP and Landau (2016).}
+\caption{Two-way tables comparing the posterior probabilities of low-parent gene heterosis for all genes in the Paschold et al. (2012) data set found by BNP and Landau and Niemi (2016).}
 \label{bayes-compare1}
 % % \begin{tabular}{rrrrrr}
 % % &  &\multicolumn{4}{c}{Landau}\\
@@ -476,7 +482,7 @@ A result of this shrinkage is increased posterior precision. Figure \ref{exempla
 % %   & total
 % %    \bottomrule
 \begin{tabular}{rrrrrrr|r}
-&  &\multicolumn{6}{c}{Landau (2016)}\\
+&  &\multicolumn{6}{c}{Landau and Niemi (2016)}\\
   \toprule
 &  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
@@ -504,7 +510,7 @@ Low-parent heterosis B73$\times$Mo17.
 %  &  (0.75,1] & 140 & 677 & 197 & 688 \\
 %    \bottomrule
    \begin{tabular}{rrrrrrr|r}
-&  &\multicolumn{6}{c}{Landau (2016)}\\
+&  &\multicolumn{6}{c}{Landau and Niemi (2016)}\\
   \toprule
 &  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
@@ -524,10 +530,10 @@ Low-parent heterosis Mo17$\times$B73.
 \begin{table}[ht]
 \footnotesize
 \centering
-\caption{Two-way tables comparing the posterior probabilities of high-parent heterosis for all genes in the Paschold et al. (2012) data set found by BNP and Landau (2016).}
+\caption{Two-way tables comparing the posterior probabilities of high-parent heterosis for all genes in the Paschold et al. (2012) data set found by BNP and Landau and Niemi (2016).}
 \label{bayes-compare2}
    \begin{tabular}{rrrrrrr|r}
-&  &\multicolumn{6}{c}{Landau (2016)}\\
+&  &\multicolumn{6}{c}{Landau and Niemi (2016)}\\
   \toprule
 &  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
@@ -545,7 +551,7 @@ High-parent heterosis B73$\times$Mo17.
 \\[.75cm]
 
 \begin{tabular}{rrrrrrr|r}
-&  &\multicolumn{6}{c}{Landau (2016)}\\
+&  &\multicolumn{6}{c}{Landau and Niemi (2016)}\\
   \toprule
 &  & [0,0.05] & (0.05,0.15] & (0.15,0.85] & (0.85,0.95] & (0.95,1] & total \\
   \midrule
@@ -595,9 +601,9 @@ For reference, the data and estimated mean expression levels are displayed in Fi
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[width=.7\textwidth]{sample_genes_mean}
+\includegraphics[width=.7\textwidth]{sample_genes_mean_v2}
 \begin{minipage}{.8\textwidth}
-\caption{Adjusted log-cpm for randomly selected genes by genotype (black) and corresponding posterior means and 90\% confidence intervals for the mean expression (red).}
+\caption{Adjusted log-cpm for randomly selected genes by genotype (black) and corresponding posterior means and 90\% confidence intervals for the mean log-cpm expression, transformed to the counts per million scale (red).}
 \label{compare-cis}
 \end{minipage}
 \end{figure}
@@ -622,7 +628,7 @@ panel shows the corresponding estimates for our analysis overlayed on a posterio
 \label{sec:discussion}
 Hierarchical models have an important role in problems where, as is true in gene expression, the number of model parameters is much larger than the number of subjects. By modeling the parameters, we use the ``between-gene" information in the data to moderate our inferences about individual genes . Where some methodolgies employ empirical Bayes concepts for certain procedures, hierarchical models are not usually an explicit part of the model. Empirical evidence suggests that, with regard to the gene-specific parameters, default model assumptions such as independent normals, are not realistic --- the empirical distributions exhibit irregular shapes, multimodality and correlations. Since it seems difficult to suggest a parametric alternative to the common default assumptions (independence, normality), a one-size-fits-all nonparametric model seemed worth investigating. We have demonstrated a computationally demanding, yet feasible, solution in our BNP method.
 
-Our simulation studies show that the BNP methodology provides a viable alternative to more standard methods. Intuitively, we expect that it should do better than the alternative methods we considered in cases when the distribution of gene-effects has an unusual shape that contradicts independence. We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the affect of the recessesive allele in the heterozygous maize plant.
+Our simulation studies show that the BNP methodology provides a viable alternative to more standard methods. Intuitively, we expect that it should do better than the alternative methods we considered in cases when the distribution of gene-effects has an unusual shape that contradicts independence. We can imagine situations where the underlying distribution of the gene specific parameters is itself an object of importance. For example, the v-shape displayed in Figure \ref{het-shrink} describes a pattern whereby the average hybrid mean expression tends toward but generally remains less than the mean expression of the higher parent. We might interpret this to be a result of dominance, where a dominant allele masks the effect of the recessesive allele in the heterozygous maize plant.
 
 When there is only interest in expression at the level of genes, it should still be valuable to have a model flexible enough to handle detectable patterns in the data. Figure \ref{all-shrink} shows side-by-side plots of the distribution of the estimated components by BNP and \texttt{DESeq2}, which assumes independent priors on the gene-specific effects (excluding the intercept). The BNP estimates are shrunk toward the mass of the distribution, whereas \texttt{DESeq2} estimates are shrunk toward the origin.
 
